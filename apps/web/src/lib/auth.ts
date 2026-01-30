@@ -46,12 +46,15 @@ export const {
       },
       authorize: async (credentials) => {
         try {
+          console.log("Auth: Authorizing credentials:", credentials);
           const parsed = credentialsSchema.safeParse(credentials);
           if (!parsed.success) {
+            console.error("Auth: Validation failed", parsed.error);
             return null;
           }
 
           const { email, password } = parsed.data;
+          console.log("Auth: Looking up user:", email);
 
           // Find user by email
           const user = await db.query.users.findFirst({
@@ -59,15 +62,19 @@ export const {
           });
 
           if (!user) {
+            console.error("Auth: User not found:", email);
             return null;
           }
 
+          console.log("Auth: User found, verifying password");
           // Verify password
           const isValid = await bcrypt.compare(password, user.passwordHash);
           if (!isValid) {
+            console.error("Auth: Password invalid");
             return null;
           }
 
+          console.log("Auth: Login successful");
           return {
             id: user.id,
             email: user.email,
