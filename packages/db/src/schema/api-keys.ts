@@ -1,4 +1,5 @@
 import { pgTable, uuid, varchar, timestamp, boolean, index } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
 import { users } from './user';
 
 export const apiKeys = pgTable('api_keys', {
@@ -13,4 +14,8 @@ export const apiKeys = pgTable('api_keys', {
   expiresAt: timestamp('expires_at'),
 }, (table) => ({
   userIdIdx: index('api_keys_user_id_idx').on(table.userId),
+}));
+
+export const apiKeysRelations = relations(apiKeys, ({ one }) => ({
+  user: one(users, { fields: [apiKeys.userId], references: [users.id] }),
 }));

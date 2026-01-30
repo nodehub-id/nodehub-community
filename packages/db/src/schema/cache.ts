@@ -1,4 +1,5 @@
 import { pgTable, uuid, varchar, timestamp, text, real, index, vector } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
 import { users } from './user';
 
 export const cacheEntries = pgTable('cache_entries', {
@@ -18,6 +19,10 @@ export const cacheEntries = pgTable('cache_entries', {
   expiresAtIdx: index('cache_expires_at_idx').on(table.expiresAt),
 }));
 
+export const cacheEntriesRelations = relations(cacheEntries, ({ one }) => ({
+  user: one(users, { fields: [cacheEntries.userId], references: [users.id] }),
+}));
+
 export const cacheStats = pgTable('cache_stats', {
   id: uuid('id').defaultRandom().primaryKey(),
   userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
@@ -29,4 +34,8 @@ export const cacheStats = pgTable('cache_stats', {
   costSpent: real('cost_spent').default(0),
 }, (table) => ({
   userDateIdx: index('cache_stats_user_date_idx').on(table.userId, table.date),
+}));
+
+export const cacheStatsRelations = relations(cacheStats, ({ one }) => ({
+  user: one(users, { fields: [cacheStats.userId], references: [users.id] }),
 }));

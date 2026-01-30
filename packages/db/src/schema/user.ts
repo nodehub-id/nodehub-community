@@ -1,4 +1,5 @@
-import { pgTable, uuid, varchar, timestamp, text } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, timestamp, text, primaryKey } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
 
 export const users = pgTable('users', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -9,6 +10,16 @@ export const users = pgTable('users', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+export const usersRelations = relations(users, ({ many }) => ({
+  accounts: many(accounts),
+  sessions: many(sessions),
+  apiKeys: many(apiKeys),
+  providerConfigs: many(providerConfigs),
+  cacheEntries: many(cacheEntries),
+  cacheStats: many(cacheStats),
+  requestLogs: many(requestLogs),
+}));
 
 export const accounts = pgTable('accounts', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -23,7 +34,13 @@ export const accounts = pgTable('accounts', {
   scope: text('scope'),
   id_token: text('id_token'),
   session_state: text('session_state'),
-});
+}, (account) => ({
+  compoundKey: primaryKey({ columns: [account.provider, account.providerAccountId] }),
+}));
+
+export const accountsRelations = relations(accounts, ({ one }) => ({
+  user: one(users, { fields: [accounts.userId], references: [users.id] }),
+}));
 
 export const sessions = pgTable('sessions', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -32,8 +49,20 @@ export const sessions = pgTable('sessions', {
   expires: timestamp('expires').notNull(),
 });
 
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+  user: one(users, { fields: [sessions.userId], references: [users.id] }),
+}));
+
 export const verificationTokens = pgTable('verification_tokens', {
   identifier: varchar('identifier', { length: 255 }).notNull(),
   token: varchar('token', { length: 255 }).notNull().unique(),
   expires: timestamp('expires').notNull(),
-});
+}, (vt) => ({
+  compoundKey: primaryKey({ columns: [vt.identifier, vt.token] }),
+}));
+
+// Import relations from other files
+import { apiKeys } from './api-keys';
+import { providerConfigs } from './providers';
+import { cacheEntries, cacheStats } from './cache';
+import { requestLogs } from './analytics';

@@ -1,4 +1,5 @@
 import { pgTable, uuid, varchar, timestamp, real, index } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
 import { users } from './user';
 
 export const requestLogs = pgTable('request_logs', {
@@ -18,4 +19,8 @@ export const requestLogs = pgTable('request_logs', {
 }, (table) => ({
   userIdIdx: index('logs_user_id_idx').on(table.userId),
   createdAtIdx: index('logs_created_at_idx').on(table.createdAt),
+}));
+
+export const requestLogsRelations = relations(requestLogs, ({ one }) => ({
+  user: one(users, { fields: [requestLogs.userId], references: [users.id] }),
 }));
