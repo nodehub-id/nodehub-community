@@ -11,13 +11,21 @@ export async function proxy(request: NextRequest) {
   const isAuthRoute = pathname.startsWith('/login') || 
                       pathname.startsWith('/register');
   const isApiAuthRoute = pathname.startsWith('/api/auth');
-  const isPublicRoute = pathname === '/' || 
-                        pathname.startsWith('/api/health') ||
-                        pathname.startsWith('/api/register');
+  const isPublicApiRoute = pathname.startsWith('/api/health') ||
+                           pathname.startsWith('/api/register');
 
-  // Allow public routes and API auth routes
-  if (isPublicRoute || isApiAuthRoute) {
+  // Allow API auth routes and public API routes
+  if (isApiAuthRoute || isPublicApiRoute) {
     return NextResponse.next();
+  }
+
+  // Redirect root based on auth status
+  if (pathname === '/') {
+    if (isLoggedIn) {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    } else {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
   }
 
   // Redirect authenticated users away from auth pages
