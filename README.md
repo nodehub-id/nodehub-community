@@ -14,7 +14,9 @@ cd nodehub-community
 
 # 2. Configure environment
 cp .env.example .env
-# Edit .env and set DATABASE_URL, AUTH_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD
+# Edit .env and set:
+#   - DATABASE_URL, AUTH_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD (required)
+#   - OPENAI_API_KEY (required for semantic caching)
 
 # 3. Start with Docker (recommended)
 docker compose up -d
@@ -52,8 +54,11 @@ docker compose up -d
 - `POST /api/v1/embeddings` - Generate embeddings
 
 ### Caching
-- **Exact Match** - SHA-256 hash-based fast lookup
-- **Semantic Match** - pgvector similarity search (infrastructure ready)
+- **Exact Match** - SHA-256 hash-based fast lookup (~5ms)
+- **Semantic Match** - pgvector cosine similarity search (~50ms)
+  - Uses OpenAI text-embedding-3-small (1536 dimensions)
+  - Fixed similarity threshold: 0.95
+  - Requires `OPENAI_API_KEY` for embeddings
 - **TTL** - 24-hour default cache expiration
 - **Stats** - Daily cache hit/miss tracking
 

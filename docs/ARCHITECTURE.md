@@ -203,17 +203,33 @@ nodehub-community/
 
 **Two-Layer Cache:**
 1. **Exact Match**: SHA-256 hash of query
-   - Fast lookup (~50ms)
+   - Fast lookup (~5ms)
    - Zero API cost on hit
-2. **Semantic Match**: pgvector similarity
-   - 1536-dimensional embeddings
-   - Cosine similarity threshold: 0.95
-   - Infrastructure ready, needs OpenAI for embeddings
+2. **Semantic Match**: pgvector cosine similarity
+   - 1536-dimensional embeddings (text-embedding-3-small)
+   - Fixed similarity threshold: 0.95 (Community Edition)
+   - Requires `OPENAI_API_KEY` for embedding generation
+   - ~50ms lookup time
+
+**Cache Flow:**
+```
+Query → Exact Hash Match? → Yes → Return cached response
+                          ↓ No
+        Generate Embedding → pgvector similarity search
+                          ↓
+        Similarity >= 0.95? → Yes → Return cached response
+                            ↓ No
+        Forward to provider → Cache response with embedding
+```
 
 **Cache Stats:**
 - Daily aggregation (user_id, date)
 - Tracks hits, misses, cost saved
 - 7-day retention (Community Edition)
+
+**Configuration:**
+- `OPENAI_API_KEY` - Required for semantic caching (embeddings)
+- Without API key: Falls back to exact-match only
 
 ### Provider System
 
@@ -378,6 +394,49 @@ User 1:N RequestLogs
 - Request logging optional (ENABLE_REQUEST_LOGGING)
 - Structured logging support
 - Error tracking via console
+
+## Data Retention & Cleanup
+
+NodeHub Community Edition automatically manages data retention through a probabilistic cleanup system.
+
+### How Cleanup Works
+
+1. **On-Request Cleanup**: Cleanup runs during API requests with a small probability (default 1%)
+2. **Non-Blocking**: Runs asynchronously, doesn't impact request latency
+3. **Zero Dependencies**: No external cron, pg_cron, or schedulers required
+4. **Self-Scaling**: Cleanup frequency naturally scales with API usage
+
+### What Gets Cleaned
+
+| Data Type | Retention | Cleanup Trigger |
+|-----------|-----------|-----------------|
+| `request_logs` | 7 days | `createdAt < cutoff` |
+| `cache_entries` | TTL-based | `expiresAt < now` |
+| `cache_stats` | 7 days | `date < cutoff` |
+
+### Configuration
+
+```bash
+# .env
+ANALYTICS_RETENTION_DAYS=7    # Days to keep data
+CLEANUP_ENABLED=true          # Enable/disable cleanup
+CLEANUP_PROBABILITY=0.01      # 1% of requests trigger cleanup
+```
+
+### Manual Cleanup
+
+For manual cleanup (e.g., during maintenance), you can run SQL directly:
+
+```sql
+-- Delete request logs older than 7 days
+DELETE FROM request_logs WHERE created_at < NOW() - INTERVAL '7 days';
+
+-- Delete expired cache entries
+DELETE FROM cache_entries WHERE expires_at < NOW();
+
+-- Delete old cache stats
+DELETE FROM cache_stats WHERE date < (CURRENT_DATE - INTERVAL '7 days')::text;
+```
 
 ## Future Considerations
 

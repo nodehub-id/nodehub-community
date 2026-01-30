@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { validateApiKey } from "@nodehub/core/auth";
 import { SemanticCache } from "@nodehub/core/cache";
 import { createProvider, PROVIDER_MODELS } from "@nodehub/core/providers";
+import { maybeRunCleanup, getCleanupConfigFromEnv } from "@nodehub/core/cleanup";
 import { db, providerConfigs, requestLogs } from "@nodehub/db";
 import { eq, and } from "drizzle-orm";
 import { chatCompletionSchema } from "@nodehub/shared/validation";
@@ -9,6 +10,9 @@ import { z } from "zod";
 
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
+  
+  // Probabilistic cleanup (non-blocking, ~1% of requests)
+  maybeRunCleanup(getCleanupConfigFromEnv());
   
   // 1. Validate API key
   const authHeader = req.headers.get("authorization");
@@ -49,6 +53,20 @@ export async function POST(req: NextRequest) {
     const cached = await cache.get(keyData.userId, query, validated.model);
 
     if (cached && cached.hit) {
+      // Log cache hit
+      await db.insert(requestLogs).values({
+        userId: keyData.userId,
+        apiKeyId: keyData.keyId,
+        providerId: "cache",
+        model: validated.model,
+        promptTokens: 0,
+        completionTokens: 0,
+        cost: 0,
+        cacheHit: 1,
+        durationMs: Date.now() - startTime,
+        status: "success",
+      });
+
       return NextResponse.json({
         id: `cached-${Date.now()}`,
         object: "chat.completion",
@@ -60,7 +78,11 @@ export async function POST(req: NextRequest) {
           finish_reason: "stop",
         }],
         usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
-        nodehub: { cache_hit: true },
+        nodehub: { 
+          cache_hit: true,
+          cache_type: cached.hitType, // 'exact' or 'semantic'
+          similarity: cached.similarity,
+        },
       });
     }
 

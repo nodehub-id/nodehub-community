@@ -65,8 +65,12 @@ export async function getUserApiKeys(userId: string) {
 }
 
 export async function countUserApiKeys(userId: string): Promise<number> {
+  // Only count active keys (Community Edition limit: 1 active key)
   const keys = await db.query.apiKeys.findMany({
-    where: eq(apiKeys.userId, userId),
+    where: and(
+      eq(apiKeys.userId, userId),
+      eq(apiKeys.isActive, true)
+    ),
   });
   return keys.length;
 }

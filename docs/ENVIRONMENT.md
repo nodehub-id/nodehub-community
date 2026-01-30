@@ -55,8 +55,19 @@ GITHUB_SECRET=your-github-client-secret
 
 Can also be configured via dashboard. Environment variables take precedence.
 
+#### OPENAI_API_KEY (Required for Semantic Caching)
+OpenAI API key used for:
+1. **Embedding generation** - Powers semantic caching (text-embedding-3-small)
+2. **GPT models** - GPT-4o, GPT-4o-mini, etc.
+
 ```bash
 OPENAI_API_KEY=sk-...
+```
+
+**Important:** Without this key, only exact-match caching works. Semantic caching (which provides 40-50% hit rates) requires embeddings.
+
+#### Other Provider Keys
+```bash
 ANTHROPIC_API_KEY=sk-ant-...
 GOOGLE_API_KEY=...
 GROQ_API_KEY=gsk_...
@@ -94,6 +105,39 @@ ENABLE_REQUEST_LOGGING=false
 ```
 
 **Default:** `false`
+
+### Data Retention & Cleanup
+
+NodeHub automatically cleans up old analytics data to manage database size.
+Cleanup runs probabilistically during API requests (no external cron needed).
+
+#### ANALYTICS_RETENTION_DAYS
+Number of days to retain analytics data (request logs, cache stats).
+
+```bash
+ANALYTICS_RETENTION_DAYS=7
+```
+
+**Default:** `7` (Community Edition)
+
+#### CLEANUP_ENABLED
+Enable or disable automatic cleanup.
+
+```bash
+CLEANUP_ENABLED=true
+```
+
+**Default:** `true`
+
+#### CLEANUP_PROBABILITY
+Probability of running cleanup on each API request (0-1).
+Higher values mean more frequent cleanup but slightly more overhead.
+
+```bash
+CLEANUP_PROBABILITY=0.01
+```
+
+**Default:** `0.01` (1% of requests trigger cleanup check)
 
 ## Docker Environment
 
