@@ -23,6 +23,7 @@ export const {
   signOut,
 } = NextAuth({
   adapter: DrizzleAdapter(db),
+  secret: process.env.AUTH_SECRET,
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
