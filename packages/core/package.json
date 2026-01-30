@@ -4,6 +4,28 @@
   "description": "Core business logic for NodeHub",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./providers": {
+      "types": "./dist/providers/index.d.ts",
+      "default": "./dist/providers/index.js"
+    },
+    "./cache": {
+      "types": "./dist/cache/index.d.ts",
+      "default": "./dist/cache/index.js"
+    },
+    "./auth": {
+      "types": "./dist/auth/index.d.ts",
+      "default": "./dist/auth/index.js"
+    },
+    "./cleanup": {
+      "types": "./dist/cleanup/index.d.ts",
+      "default": "./dist/cleanup/index.js"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "lint": "eslint src/",

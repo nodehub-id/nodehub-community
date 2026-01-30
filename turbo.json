@@ -7,7 +7,7 @@
     "NEXTAUTH_URL",
     "NODE_ENV"
   ],
-  "pipeline": {
+  "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"]
