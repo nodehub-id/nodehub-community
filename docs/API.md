@@ -7,7 +7,7 @@ NodeHub provides an OpenAI-compatible API at `/api/v1/`.
 All API requests require authentication via Bearer token:
 
 ```bash
-curl https://api.nodehub.id/v1/chat/completions \
+curl http://localhost:3000/api/v1/chat/completions \
   -H "Authorization: Bearer nh_your_api_key" \
   -H "Content-Type: application/json"
 ```
@@ -63,7 +63,7 @@ curl https://api.nodehub.id/v1/chat/completions \
 Set `stream: true` for SSE streaming:
 
 ```bash
-curl https://api.nodehub.id/v1/chat/completions \
+curl http://localhost:3000/api/v1/chat/completions \
   -H "Authorization: Bearer nh_your_api_key" \
   -H "Content-Type: application/json" \
   -d '{
@@ -114,7 +114,7 @@ import OpenAI from 'openai';
 
 const openai = new OpenAI({
   apiKey: 'nh_your_api_key',
-  baseURL: 'https://api.nodehub.id/v1',
+  baseURL: 'http://localhost:3000/api/v1',
 });
 
 const completion = await openai.chat.completions.create({
@@ -129,7 +129,7 @@ from openai import OpenAI
 
 client = OpenAI(
     api_key='nh_your_api_key',
-    base_url='https://api.nodehub.id/v1'
+    base_url='http://localhost:3000/api/v1'
 )
 
 completion = client.chat.completions.create(
@@ -142,7 +142,7 @@ completion = client.chat.completions.create(
 
 ### Cursor
 Settings → OpenAI API Key → Custom API:
-- Base URL: `https://api.nodehub.id/v1`
+- Base URL: `http://localhost:3000/api/v1`
 - API Key: `nh_your_api_key`
 
 ### VS Code (Continue.dev)
@@ -151,7 +151,7 @@ Settings → OpenAI API Key → Custom API:
   "models": [{
     "provider": "openai",
     "apiKey": "nh_your_api_key",
-    "apiBase": "https://api.nodehub.id/v1"
+    "apiBase": "http://localhost:3000/api/v1"
   }]
 }
 ```

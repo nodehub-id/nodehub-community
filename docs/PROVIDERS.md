@@ -77,9 +77,41 @@ curl -fsSL https://ollama.com/install.sh | sh
 ollama pull llama3.2
 ```
 
+## Model Selection
+
+When you make an API request, specify the model in your request:
+
+```bash
+curl http://localhost:3000/api/v1/chat/completions \
+  -H "Authorization: Bearer nh_your_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-4o",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+```
+
+NodeHub will automatically route to the correct provider based on the model name.
+
+**Available Models:**
+
+| Model | Provider | Use Case |
+|-------|----------|----------|
+| `gpt-4o` | OpenAI | Best overall performance |
+| `gpt-4o-mini` | OpenAI | Fast, cost-effective |
+| `claude-3-5-sonnet-latest` | Anthropic | Excellent for complex tasks |
+| `claude-3-opus-latest` | Anthropic | Most capable (expensive) |
+| `gemini-1.5-pro` | Google | Good for long context |
+| `gemini-1.5-flash` | Google | Fast responses |
+| `llama-3.2-70b` | Groq | Fast inference |
+| `mixtral-8x7b` | Groq | Balanced performance |
+| `llama3.2` (local) | Ollama | Free, private |
+
+List all available models: `GET /api/v1/models`
+
 ## Fallback Behavior
 
-If multiple providers are enabled and one fails, NodeHub will automatically try the next available provider.
+If multiple providers are enabled and one fails, NodeHub will automatically try the next available provider based on your enabled providers list.
 
 ## Security
 

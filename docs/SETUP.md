@@ -84,9 +84,53 @@ See [.env.example](../.env.example) for all available options.
 
 The first time you run NodeHub, it will create an admin user from the `ADMIN_EMAIL` and `ADMIN_PASSWORD` environment variables. After the first user is created, you can create additional users through the web interface.
 
-### Provider Configuration
+### First-Time Setup
 
-After logging in, go to **Providers** in the dashboard to configure your AI provider API keys.
+After logging in, complete these steps:
+
+1. **Configure Providers**
+   - Go to **Providers** in the dashboard
+   - Enable at least one AI provider (OpenAI, Anthropic, Google, Groq, or Ollama)
+   - Enter your API key for that provider
+   - Click "Test Connection" to verify
+
+2. **Create API Key**
+   - Go to **API Keys**
+   - Click "Create API Key"
+   - Copy the key immediately (shown only once!)
+
+3. **Configure Your IDE**
+   - Use base URL: `http://localhost:3000/api/v1`
+   - Use your API key: `nh-xxxxx...`
+   - See [DASHBOARD.md](./DASHBOARD.md) for detailed IDE setup
+
+**Next Steps:**
+- Read the [Dashboard Guide](./DASHBOARD.md) to learn about all features
+- See [API.md](./API.md) for API reference
+- Check [PROVIDERS.md](./PROVIDERS.md) for provider-specific setup
+
+## Troubleshooting
+
+**Dashboard not loading:**
+- Check server status: `docker compose ps`
+- View logs: `docker compose logs app`
+- Ensure ports are not in use: `netstat -an | grep 3000`
+
+**Database connection errors:**
+- Check that PostgreSQL is running: `docker compose ps db`
+- Verify DATABASE_URL is correct in `.env`
+- Ensure pgvector extension is installed (see docker/init-db.sql)
+
+**Build errors:**
+- Run `pnpm install` to ensure all dependencies are installed
+- Clear Next.js cache: `rm -rf apps/web/.next`
+- Restart dev server: `pnpm dev`
+
+**Authentication issues:**
+- Verify AUTH_SECRET is set and at least 32 characters
+- Check that cookies are enabled in your browser
+- Look for "Default admin user created" message in startup logs
+- If locked out, check database directly: `docker compose exec db psql -U nodehub -c "SELECT * FROM users;"`
 
 ## Troubleshooting
 
