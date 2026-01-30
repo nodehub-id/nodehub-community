@@ -27,7 +27,18 @@ export class GoogleProvider extends BaseProvider {
     }
 
     // Note: Gemini currently doesn't support streaming in the same way
-    const data = await response.json();
+    const data = await response.json() as {
+      name?: string;
+      candidates?: Array<{
+        content?: { parts?: Array<{ text?: string }> };
+        finishReason?: string;
+      }>;
+      usageMetadata?: {
+        promptTokenCount?: number;
+        candidatesTokenCount?: number;
+        totalTokenCount?: number;
+      };
+    };
     
     yield {
       id: data.name || `gemini-${Date.now()}`,
@@ -50,7 +61,7 @@ export class GoogleProvider extends BaseProvider {
     };
   }
 
-  getModels(): string[] {
+  async getModels(): Promise<string[]> {
     return ['gemini-1.5-pro', 'gemini-1.5-flash'];
   }
 

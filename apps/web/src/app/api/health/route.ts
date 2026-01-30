@@ -4,7 +4,7 @@ import { db } from "@nodehub/db";
 export async function GET() {
   try {
     // Check database connection
-    await db.query.users.findFirst({ limit: 1 });
+    await db.query.users.findFirst();
     
     return NextResponse.json(
       { status: "healthy", timestamp: new Date().toISOString() },

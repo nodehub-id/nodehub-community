@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { hashPassword, verifyPassword, generateRandomPassword } from '../src/auth/password';
+import { hashPassword, verifyPassword, generateRandomPassword } from './password';
 import { 
   hashApiKey, 
   generateApiKey,
   validateApiKey 
-} from '../src/auth/api-keys';
+} from './api-keys';
 
 describe('Password utilities', () => {
   describe('hashPassword', () => {

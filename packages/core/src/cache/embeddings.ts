@@ -78,7 +78,7 @@ export class EmbeddingsService {
         return null;
       }
 
-      const data = await response.json();
+      const data = await response.json() as { data?: Array<{ embedding: number[] }> };
       return data.data?.[0]?.embedding || null;
     } catch (error) {
       console.error('[Embeddings] Failed to generate embedding:', error);
@@ -114,12 +114,12 @@ export class EmbeddingsService {
         return texts.map(() => null);
       }
 
-      const data = await response.json();
+      const data = await response.json() as { data?: Array<{ index: number; embedding: number[] }> };
       
       // Sort by index to ensure correct order
       const embeddings = data.data
-        ?.sort((a: any, b: any) => a.index - b.index)
-        ?.map((item: any) => item.embedding) || [];
+        ?.sort((a, b) => a.index - b.index)
+        ?.map((item) => item.embedding) || [];
       
       return embeddings;
     } catch (error) {

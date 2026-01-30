@@ -159,10 +159,19 @@ importers:
       '@nodehub/shared':
         specifier: workspace:*
         version: link:../shared
+      bcryptjs:
+        specifier: ^2.4.3
+        version: 2.4.3
+      drizzle-orm:
+        specifier: ^0.36.4
+        version: 0.36.4(@types/react@19.2.10)(postgres@3.4.8)(react@19.2.4)
       zod:
         specifier: ^3.25.76
         version: 3.25.76
     devDependencies:
+      '@types/bcryptjs':
+        specifier: ^2.4.6
+        version: 2.4.6
       '@types/node':
         specifier: ^20.0.0
         version: 20.19.30

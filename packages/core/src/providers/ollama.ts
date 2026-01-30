@@ -52,7 +52,7 @@ export class OllamaProvider extends BaseProvider {
                 choices: [{
                   index: 0,
                   message: chunk.message,
-                  finish_reason: chunk.done ? 'stop' : null,
+                  finish_reason: chunk.done ? 'stop' : 'stop',
                 }],
                 usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
               };
@@ -63,7 +63,12 @@ export class OllamaProvider extends BaseProvider {
         }
       }
     } else {
-      const data = await response.json();
+      const data = await response.json() as {
+        message?: { role: string; content: string };
+        prompt_eval_count?: number;
+        eval_count?: number;
+      };
+      const message = data.message;
       yield {
         id: `ollama-${Date.now()}`,
         object: 'chat.completion',
@@ -71,7 +76,10 @@ export class OllamaProvider extends BaseProvider {
         model: request.model,
         choices: [{
           index: 0,
-          message: data.message,
+          message: {
+            role: (message?.role || 'assistant') as 'assistant' | 'system' | 'user',
+            content: message?.content || '',
+          },
           finish_reason: 'stop',
         }],
         usage: {
@@ -88,8 +96,8 @@ export class OllamaProvider extends BaseProvider {
       const response = await fetch(`${this.config.baseUrl || 'http://localhost:11434'}/api/tags`);
       if (!response.ok) return [];
       
-      const data = await response.json();
-      return data.models?.map((m: { name: string }) => m.name) || [];
+      const data = await response.json() as { models?: Array<{ name: string }> };
+      return data.models?.map((m) => m.name) || [];
     } catch {
       return [];
     }

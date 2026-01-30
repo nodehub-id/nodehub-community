@@ -44,12 +44,12 @@ export class OpenAIProvider extends BaseProvider {
         }
       }
     } else {
-      const data = await response.json();
+      const data = await response.json() as ChatCompletionResponse;
       yield data;
     }
   }
 
-  getModels(): string[] {
+  async getModels(): Promise<string[]> {
     return ['gpt-4o', 'gpt-4o-mini', 'gpt-4', 'gpt-3.5-turbo'];
   }
 

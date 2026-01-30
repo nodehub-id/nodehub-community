@@ -141,7 +141,7 @@ export class SemanticCache {
         LIMIT 1
       `);
 
-      const rows = result.rows as any[];
+      const rows = result as unknown as Array<{ similarity: number; response: string }>;
       if (rows.length > 0 && rows[0].similarity >= this.config.similarityThreshold) {
         return {
           response: rows[0].response,

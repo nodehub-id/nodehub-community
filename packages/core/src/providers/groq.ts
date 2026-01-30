@@ -44,12 +44,12 @@ export class GroqProvider extends BaseProvider {
         }
       }
     } else {
-      const data = await response.json();
+      const data = await response.json() as ChatCompletionResponse;
       yield data;
     }
   }
 
-  getModels(): string[] {
+  async getModels(): Promise<string[]> {
     return ['llama-3.2-70b', 'mixtral-8x7b'];
   }
 

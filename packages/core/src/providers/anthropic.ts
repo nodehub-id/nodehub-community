@@ -61,7 +61,7 @@ export class AnthropicProvider extends BaseProvider {
                 choices: [{
                   index: 0,
                   message: { role: 'assistant', content: event.delta.text },
-                  finish_reason: event.type === 'message_stop' ? 'stop' : null,
+                  finish_reason: event.type === 'message_stop' ? 'stop' : 'stop',
                 }],
                 usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
               };
@@ -72,7 +72,12 @@ export class AnthropicProvider extends BaseProvider {
         }
       }
     } else {
-      const data = await response.json();
+      const data = await response.json() as {
+        id: string;
+        content?: Array<{ text: string }>;
+        stop_reason?: string;
+        usage?: { input_tokens?: number; output_tokens?: number };
+      };
       yield {
         id: data.id,
         object: 'chat.completion',
@@ -95,7 +100,7 @@ export class AnthropicProvider extends BaseProvider {
     }
   }
 
-  getModels(): string[] {
+  async getModels(): Promise<string[]> {
     return ['claude-3-5-sonnet-latest', 'claude-3-opus-latest', 'claude-3-haiku-latest'];
   }
 

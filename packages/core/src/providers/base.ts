@@ -40,7 +40,7 @@ export abstract class BaseProvider {
   constructor(protected config: ProviderConfig) {}
 
   abstract chatCompletions(request: ChatCompletionRequest): AsyncGenerator<ChatCompletionResponse>;
-  abstract getModels(): string[];
+  abstract getModels(): Promise<string[]>;
   abstract calculateCost(model: string, promptTokens: number, completionTokens: number): number;
 }
 

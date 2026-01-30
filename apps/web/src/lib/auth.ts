@@ -102,9 +102,11 @@ export const {
           Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2),
           10
         );
-        await db.update(users)
-          .set({ passwordHash: randomPassword })
-          .where(eq(users.id, user.id));
+        if (user.id) {
+          await db.update(users)
+            .set({ passwordHash: randomPassword })
+            .where(eq(users.id, user.id));
+        }
       }
     },
   },
