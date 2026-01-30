@@ -36,6 +36,8 @@ services:
       - POSTGRES_USER=nodehub
       - POSTGRES_PASSWORD=nodehub
       - POSTGRES_DB=nodehub
+    ports:
+      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init.sql

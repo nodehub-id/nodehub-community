@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, timestamp, text, primaryKey } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, timestamp, text, primaryKey, unique } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 export const users = pgTable('users', {
@@ -35,7 +35,7 @@ export const accounts = pgTable('accounts', {
   id_token: text('id_token'),
   session_state: text('session_state'),
 }, (account) => ({
-  compoundKey: primaryKey({ columns: [account.provider, account.providerAccountId] }),
+  compoundKey: unique('accounts_provider_providerAccountId_unique').on(account.provider, account.providerAccountId),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
