@@ -1,17 +1,32 @@
 import { BaseProvider, ProviderConfig, ProviderType, PROVIDER_MODELS, PROVIDER_COSTS } from './base';
 import { OpenAIProvider } from './openai';
+import { AnthropicProvider } from './anthropic';
+import { GoogleProvider } from './google';
+import { GroqProvider } from './groq';
+import { OllamaProvider } from './ollama';
 
 export * from './base';
 export { OpenAIProvider } from './openai';
+export { AnthropicProvider } from './anthropic';
+export { GoogleProvider } from './google';
+export { GroqProvider } from './groq';
+export { OllamaProvider } from './ollama';
 
-// Provider factory - will be extended with other providers
+// Provider factory
 export function createProvider(type: ProviderType, config: ProviderConfig): BaseProvider {
   switch (type) {
     case 'openai':
       return new OpenAIProvider(config);
-    // Other providers will be implemented in Phase 3
+    case 'anthropic':
+      return new AnthropicProvider(config);
+    case 'google':
+      return new GoogleProvider(config);
+    case 'groq':
+      return new GroqProvider(config);
+    case 'ollama':
+      return new OllamaProvider(config);
     default:
-      throw new Error(`Provider ${type} not yet implemented`);
+      throw new Error(`Provider ${type} not supported`);
   }
 }
 
