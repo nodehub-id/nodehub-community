@@ -8,5 +8,6 @@ export default async function HomePage() {
     redirect('/login');
   }
   
-  redirect('/');
+  // Redirect to dashboard when authenticated
+  redirect('/dashboard');
 }
