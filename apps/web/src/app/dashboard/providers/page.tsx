@@ -119,10 +119,24 @@ export default function ProvidersPage() {
   }
 
   async function updateProvider(providerId: string, enabled: boolean, apiKey?: string, baseUrl?: string) {
+    // Check if trying to enable without API key
+    const requiresKey = PROVIDER_INFO[providerId]?.requiresKey;
+    const provider = providers.find(p => p.id === providerId);
+    const hasKey = provider?.apiKeySet || apiKey || (providerId === "ollama" && (baseUrl || baseUrls[providerId]));
+    
+    if (enabled && requiresKey && !hasKey) {
+      toast({
+        title: "API Key Required",
+        description: `Please enter and save your ${provider?.name} API key first`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsLoading((prev) => ({ ...prev, [providerId]: true }));
     try {
       // For Ollama, we store the baseUrl as the apiKey in the database
-      const keyToStore = providerId === "ollama" ? baseUrl : apiKey;
+      const keyToStore = providerId === "ollama" ? (baseUrl || baseUrls[providerId]) : (apiKey || apiKeys[providerId]);
       
       const response = await fetch("/api/providers", {
         method: "PATCH",
@@ -134,7 +148,7 @@ export default function ProvidersPage() {
         fetchProviders();
         toast({
           title: "Success",
-          description: `${providerId} updated successfully`,
+          description: `${providerId} ${enabled ? 'enabled' : 'disabled'}`,
         });
       } else {
         toast({
@@ -221,7 +235,7 @@ export default function ProvidersPage() {
                     onCheckedChange={(checked) =>
                       updateProvider(provider.id, checked)
                     }
-                    disabled={isLoading[provider.id] || (!provider.apiKeySet && PROVIDER_INFO[provider.id]?.requiresKey)}
+                    disabled={isLoading[provider.id]}
                   />
                 </div>
               </div>
