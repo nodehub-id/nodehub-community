@@ -10,6 +10,7 @@ import {
   BarChart3,
   Settings,
   LogOut,
+  ScrollText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,7 @@ const navItems = [
   { href: "/dashboard/providers", label: "Providers", icon: Cloud },
   { href: "/dashboard/caching", label: "Caching", icon: Database },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/dashboard/logs", label: "Logs", icon: ScrollText },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
@@ -55,7 +57,7 @@ export function DashboardSidebar({ user }: SidebarProps) {
               href={item.href}
               className={cn(
                 "flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-                pathname === item.href || pathname.startsWith(`${item.href}/`)
+                pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(`${item.href}/`))
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
