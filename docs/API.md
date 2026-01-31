@@ -77,6 +77,8 @@ curl http://localhost:3000/api/v1/chat/completions \
 
 **Endpoint:** `GET /api/v1/models`
 
+Returns all available models from configured providers, including dynamically detected Ollama models.
+
 **Response:**
 ```json
 {
@@ -87,10 +89,21 @@ curl http://localhost:3000/api/v1/chat/completions \
       "object": "model",
       "created": 1677610602,
       "owned_by": "openai"
+    },
+    {
+      "id": "llama3.2:1b",
+      "object": "model",
+      "created": 1677610602,
+      "owned_by": "ollama"
     }
   ]
 }
 ```
+
+**Notes:**
+- Cloud provider models (OpenAI, Anthropic, etc.) are always listed if configured
+- Ollama models are dynamically detected from your local instance
+- Models must be pulled in Ollama before they appear in the list
 
 ### Embeddings
 
@@ -158,11 +171,29 @@ Settings → OpenAI API Key → Custom API:
 
 ## Error Handling
 
-**401 Unauthorized:** Invalid or missing API key
-**429 Rate Limited:** Too many requests
-**500 Server Error:** Internal server error
+NodeHub returns appropriate HTTP status codes and detailed error messages:
 
-Error response format:
+| Status Code | Error Type | Description |
+|-------------|------------|-------------|
+| **400** | `invalid_request_error` | Bad request (invalid model, missing parameters) |
+| **401** | `authentication_error` | Invalid or missing API key |
+| **429** | `rate_limit_error` | Rate limited by upstream provider |
+| **500** | `api_error` | Internal server error or upstream provider error |
+
+### Error Response Format
+
+```json
+{
+  "error": {
+    "message": "Detailed error message from provider",
+    "type": "error_type"
+  }
+}
+```
+
+### Common Errors
+
+**Authentication Error (401):**
 ```json
 {
   "error": {
@@ -171,3 +202,43 @@ Error response format:
   }
 }
 ```
+
+**Model Not Supported (400):**
+```json
+{
+  "error": {
+    "message": "Model llama3.2:1b not supported",
+    "type": "invalid_request_error"
+  }
+}
+```
+
+**Provider Rate Limit (429):**
+```json
+{
+  "error": {
+    "message": "You exceeded your current quota, please check your plan and billing details.",
+    "type": "rate_limit_error"
+  }
+}
+```
+
+**Provider Not Configured (400):**
+```json
+{
+  "error": {
+    "message": "Provider openai not configured",
+    "type": "invalid_request_error"
+  }
+}
+```
+
+### Error Message Details
+
+When a provider returns an error, NodeHub forwards the actual error message from the provider:
+- **OpenAI:** Quota exceeded, model not found, etc.
+- **Anthropic:** Rate limits, invalid requests, etc.
+- **Groq:** Authentication errors, rate limits, etc.
+- **Ollama:** Model not found, connection errors, etc.
+
+This helps you diagnose issues directly without checking multiple logs.

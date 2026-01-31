@@ -105,9 +105,42 @@ NodeHub will automatically route to the correct provider based on the model name
 | `gemini-1.5-flash` | Google | Fast responses |
 | `llama-3.2-70b` | Groq | Fast inference |
 | `mixtral-8x7b` | Groq | Balanced performance |
-| `llama3.2` (local) | Ollama | Free, private |
+| Any local model | Ollama | Free, private |
+
+### Ollama Model Support
+
+NodeHub supports **any model** available in your local Ollama instance. When you make a request with a model name:
+
+1. NodeHub checks if the model exists in your configured Ollama instance
+2. If found, the request is routed to Ollama automatically
+3. No pre-configuration of model names is required
+
+**Example with Ollama:**
+```bash
+# Pull a model in Ollama
+ollama pull llama3.2:1b
+
+# Use it immediately via API
+curl http://localhost:3000/api/v1/chat/completions \
+  -H "Authorization: Bearer nh_your_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "llama3.2:1b",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+```
+
+**Supported Ollama Models:**
+- `llama3.2`, `llama3.2:1b` - Meta's Llama 3.2
+- `mistral`, `mistral:7b` - Mistral AI models
+- `phi4` - Microsoft's Phi-4
+- `qwen2.5` - Alibaba's Qwen
+- `gemma2` - Google's Gemma
+- And any other model you pull into Ollama
 
 List all available models: `GET /api/v1/models`
+
+**Note:** The models endpoint returns both cloud provider models and dynamically detected Ollama models.
 
 ## Fallback Behavior
 

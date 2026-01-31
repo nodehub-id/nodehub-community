@@ -37,6 +37,7 @@ docker compose up -d
 - **Semantic Caching** - 40-50% cost savings using pgvector similarity matching
 - **Web Dashboard** - Complete UI for configuration and monitoring
 - **5 AI Providers** - OpenAI, Anthropic, Google, Groq, Ollama (local)
+- **Dynamic Ollama Support** - Use any model from your local Ollama instance automatically
 - **Self-hosted** - Your data stays on your infrastructure
 - **Free & Open Source** - AGPL v3 license
 

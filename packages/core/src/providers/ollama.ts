@@ -63,12 +63,42 @@ export class OllamaProvider extends BaseProvider {
         }
       }
     } else {
-      const data = await response.json() as {
-        message?: { role: string; content: string };
-        prompt_eval_count?: number;
-        eval_count?: number;
-      };
-      const message = data.message;
+      // Non-streaming: collect all chunks and return final response
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No response body');
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let fullContent = '';
+      let promptTokens = 0;
+      let completionTokens = 0;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+
+          try {
+            const chunk = JSON.parse(line);
+            if (chunk.message?.content) {
+              fullContent += chunk.message.content;
+            }
+            if (chunk.done) {
+              promptTokens = chunk.prompt_eval_count || 0;
+              completionTokens = chunk.eval_count || 0;
+            }
+          } catch {
+            // Skip malformed chunks
+          }
+        }
+      }
+
       yield {
         id: `ollama-${Date.now()}`,
         object: 'chat.completion',
@@ -77,15 +107,15 @@ export class OllamaProvider extends BaseProvider {
         choices: [{
           index: 0,
           message: {
-            role: (message?.role || 'assistant') as 'assistant' | 'system' | 'user',
-            content: message?.content || '',
+            role: 'assistant',
+            content: fullContent,
           },
           finish_reason: 'stop',
         }],
         usage: {
-          prompt_tokens: data.prompt_eval_count || 0,
-          completion_tokens: data.eval_count || 0,
-          total_tokens: (data.prompt_eval_count || 0) + (data.eval_count || 0),
+          prompt_tokens: promptTokens,
+          completion_tokens: completionTokens,
+          total_tokens: promptTokens + completionTokens,
         },
       };
     }

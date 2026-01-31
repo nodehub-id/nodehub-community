@@ -249,10 +249,26 @@ interface BaseProvider {
 - Groq: OpenAI-compatible endpoint
 - Ollama: Local HTTP API
 
+**Error Handling:**
+- Providers extract actual error messages from upstream APIs (not just status text)
+- HTTP status codes are propagated from providers to API responses
+- Error types are mapped: `rate_limit_error`, `invalid_request_error`, `authentication_error`, `api_error`
+- This helps users diagnose issues without checking server logs
+
 **Routing:**
-- Model name → Provider mapping
-- Automatic provider selection
+- Model name → Provider mapping (hardcoded for cloud providers)
+- Dynamic Ollama model detection: queries local Ollama instance for available models
+- Automatic provider selection based on model availability
 - Fallback chain if provider fails
+
+**Dynamic Ollama Detection:**
+When a request comes in with an unknown model name:
+1. Check if user has Ollama configured
+2. Query Ollama's `/api/tags` endpoint for available models
+3. If model exists in Ollama, route the request there
+4. Otherwise, return "model not supported" error
+
+This enables using any model pulled into Ollama without pre-configuration.
 
 ## Database Schema
 
