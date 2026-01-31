@@ -78,6 +78,7 @@ export default function ApiKeysPage() {
       if (response.ok) {
         setCreatedKey(data.key);
         setNewKeyName("");
+        setIsDialogOpen(false);
         fetchKeys();
         toast({
           title: "Success",
