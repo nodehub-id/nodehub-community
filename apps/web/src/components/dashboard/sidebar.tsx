@@ -68,8 +68,8 @@ export function DashboardSidebar() {
 
       <div className="p-4">
         <div className="mb-4 px-4 py-2">
-          <p className="text-sm font-medium truncate">{user.name || user.email}</p>
-          <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+          <p className="text-sm font-medium truncate">{user?.name || user?.email || "User"}</p>
+          <p className="text-xs text-muted-foreground truncate">{user?.email || ""}</p>
         </div>
         <form action="/api/auth/signout" method="POST">
           <Button type="submit" variant="outline" className="w-full" size="sm">
