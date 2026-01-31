@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { SemanticCache } from "@nodehub/core/cache";
-import { db } from "@nodehub/db";
-import { cacheEntries, eq, and, gt } from "@nodehub/db";
+import { db, cacheEntries } from "@nodehub/db";
+import { eq, and, gt } from "drizzle-orm";
 
 // Create a singleton instance
 const semanticCache = new SemanticCache();

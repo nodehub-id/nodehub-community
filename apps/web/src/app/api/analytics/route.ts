@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db, requestLogs, cacheStats, eq, and, gt, sql } from "@nodehub/db";
+import { db, requestLogs, cacheStats } from "@nodehub/db";
+import { eq, and, gt } from "drizzle-orm";
 
 export async function GET(request: Request) {
   const session = await auth();
