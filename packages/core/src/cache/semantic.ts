@@ -7,13 +7,19 @@
  * 
  * Community Edition:
  * - Fixed similarity threshold: 0.95
- * - Requires OPENAI_API_KEY for embeddings generation
- * - Falls back to exact match only if API key not configured
+ * - Default provider: local (@xenova/transformers)
+ * - Falls back to exact match only if embeddings fail
+ * 
+ * Supported embedding providers:
+ * - local (default, no API key needed)
+ * - ollama (self-hosted)
+ * - huggingface-tei (self-hosted)
+ * - openai (cloud, requires API key)
  */
 
 import { createHash } from 'crypto';
 import { db, cacheEntries, cacheStats } from '@nodehub/db';
-import { eq, and, gt, sql, ne } from 'drizzle-orm';
+import { eq, and, gt, sql } from 'drizzle-orm';
 import { getEmbeddingsService } from './embeddings';
 
 export interface CacheConfig {
@@ -52,7 +58,7 @@ export class SemanticCache {
    */
   async get(userId: string | null, query: string, model: string): Promise<CacheResult | null> {
     const queryHash = this.generateHash(query);
-    
+
     // 1. Try exact match first (fast path)
     const exactMatch = await db.query.cacheEntries.findFirst({
       where: and(
@@ -64,10 +70,10 @@ export class SemanticCache {
     });
 
     if (exactMatch) {
-      await this.updateStats(userId, true, 0); // 0 cost saved for exact hit tracking
-      return { 
-        response: exactMatch.response, 
-        hit: true, 
+      await this.updateStats(userId, true, 0);
+      return {
+        response: exactMatch.response,
+        hit: true,
         hitType: 'exact',
         model,
         similarity: 1.0,
@@ -76,18 +82,20 @@ export class SemanticCache {
 
     // 2. Try semantic search using pgvector
     const embeddingsService = getEmbeddingsService();
-    
+
     if (embeddingsService.isEnabled()) {
       const queryEmbedding = await embeddingsService.generateEmbedding(query);
-      
+      const dimensions = embeddingsService.getDimensions();
+
       if (queryEmbedding) {
         const semanticMatch = await this.findSimilarEntry(
-          userId, 
-          model, 
-          queryEmbedding, 
-          queryHash
+          userId,
+          model,
+          queryEmbedding,
+          queryHash,
+          dimensions
         );
-        
+
         if (semanticMatch) {
           await this.updateStats(userId, true, 0);
           return {
@@ -108,23 +116,25 @@ export class SemanticCache {
 
   /**
    * Find similar cache entry using pgvector cosine similarity
+   * Only matches entries with the same embedding dimensions
    */
   private async findSimilarEntry(
     userId: string | null,
     model: string,
     queryEmbedding: number[],
-    excludeHash: string
+    excludeHash: string,
+    dimensions: number
   ): Promise<{ response: string; similarity: number } | null> {
     try {
       // Use pgvector's cosine distance operator (<=>)
       // Cosine distance = 1 - cosine similarity
-      // So we want distance < (1 - threshold)
       const maxDistance = 1 - this.config.similarityThreshold;
-      
+
       // Format embedding as pgvector string
       const embeddingStr = `[${queryEmbedding.join(',')}]`;
-      
+
       // Raw SQL query for pgvector similarity search
+      // Only match entries with the same embedding dimensions
       const result = await db.execute(sql`
         SELECT 
           response,
@@ -135,6 +145,7 @@ export class SemanticCache {
           AND expires_at > NOW()
           AND query_hash != ${excludeHash}
           AND query_embedding IS NOT NULL
+          AND embedding_dimensions = ${dimensions}
           ${userId ? sql`AND user_id = ${userId}` : sql`AND user_id IS NULL`}
           AND (query_embedding <=> ${embeddingStr}::vector) < ${maxDistance}
         ORDER BY query_embedding <=> ${embeddingStr}::vector
@@ -148,7 +159,7 @@ export class SemanticCache {
           similarity: rows[0].similarity,
         };
       }
-      
+
       return null;
     } catch (error) {
       console.error('[SemanticCache] pgvector search failed:', error);
@@ -160,10 +171,10 @@ export class SemanticCache {
    * Store a response in the cache with embedding
    */
   async set(
-    userId: string | null, 
-    query: string, 
-    model: string, 
-    response: string, 
+    userId: string | null,
+    query: string,
+    model: string,
+    response: string,
     tokens: { prompt: number; completion: number }
   ): Promise<void> {
     const queryHash = this.generateHash(query);
@@ -173,9 +184,15 @@ export class SemanticCache {
     // Generate embedding for semantic search
     const embeddingsService = getEmbeddingsService();
     let queryEmbedding: number[] | null = null;
-    
+    let embeddingDimensions: number | null = null;
+    let embeddingProvider: string | null = null;
+
     if (embeddingsService.isEnabled()) {
       queryEmbedding = await embeddingsService.generateEmbedding(query);
+      if (queryEmbedding) {
+        embeddingDimensions = queryEmbedding.length;
+        embeddingProvider = embeddingsService.getProviderName();
+      }
     }
 
     // Insert cache entry
@@ -184,11 +201,11 @@ export class SemanticCache {
       const embeddingStr = `[${queryEmbedding.join(',')}]`;
       await db.execute(sql`
         INSERT INTO cache_entries (
-          user_id, query_hash, query_embedding, response, model, 
-          prompt_tokens, completion_tokens, expires_at
+          user_id, query_hash, query_embedding, embedding_dimensions, embedding_provider,
+          response, model, prompt_tokens, completion_tokens, expires_at
         ) VALUES (
-          ${userId}, ${queryHash}, ${embeddingStr}::vector, ${response}, ${model},
-          ${tokens.prompt}, ${tokens.completion}, ${expiresAt}
+          ${userId}, ${queryHash}, ${embeddingStr}::vector, ${embeddingDimensions}, ${embeddingProvider},
+          ${response}, ${model}, ${tokens.prompt}, ${tokens.completion}, ${expiresAt}
         )
       `);
     } else {
@@ -238,7 +255,7 @@ export class SemanticCache {
     if (!userId) return;
 
     const today = new Date().toISOString().split('T')[0];
-    
+
     const existing = await db.query.cacheStats.findFirst({
       where: and(eq(cacheStats.userId, userId), eq(cacheStats.date, today)),
     });
@@ -283,5 +300,16 @@ export class SemanticCache {
    */
   isSemanticEnabled(): boolean {
     return getEmbeddingsService().isEnabled();
+  }
+
+  /**
+   * Get current embedding provider info
+   */
+  getEmbeddingInfo(): { provider: string; dimensions: number } {
+    const service = getEmbeddingsService();
+    return {
+      provider: service.getProviderName(),
+      dimensions: service.getDimensions(),
+    };
   }
 }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PROVIDER_MODELS } from "@nodehub/core/providers";
 import { validateApiKey } from "@nodehub/core/auth";
-import { db, providerConfigs } from "@nodehub/db";
+import { db, modelProviderConfigs } from "@nodehub/db";
 import { eq, and } from "drizzle-orm";
 
 export async function GET(req: NextRequest) {
@@ -30,11 +30,11 @@ export async function GET(req: NextRequest) {
   // Fetch Ollama models dynamically if we have a user
   if (userId) {
     try {
-      const ollamaConfig = await db.query.providerConfigs.findFirst({
+      const ollamaConfig = await db.query.modelProviderConfigs.findFirst({
         where: and(
-          eq(providerConfigs.userId, userId),
-          eq(providerConfigs.providerId, "ollama"),
-          eq(providerConfigs.enabled, true)
+          eq(modelProviderConfigs.userId, userId),
+          eq(modelProviderConfigs.providerId, "ollama"),
+          eq(modelProviderConfigs.enabled, true)
         ),
       });
 

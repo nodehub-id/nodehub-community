@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db, providerConfigs } from "@nodehub/db";
+import { db, modelProviderConfigs } from "@nodehub/db";
 import { eq, and } from "drizzle-orm";
 import { PROVIDER_MODELS } from "@nodehub/core/providers";
 
@@ -10,8 +10,8 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const configs = await db.query.providerConfigs.findMany({
-    where: eq(providerConfigs.userId, session.user.id),
+  const configs = await db.query.modelProviderConfigs.findMany({
+    where: eq(modelProviderConfigs.userId, session.user.id),
   });
 
   // Return all 5 providers with their status
@@ -23,8 +23,8 @@ export async function GET() {
       enabled: config?.enabled || false,
       models: PROVIDER_MODELS[providerId as keyof typeof PROVIDER_MODELS],
       apiKeySet: !!config?.apiKey,
-      // For Ollama, return the base URL so it can be displayed (not a sensitive API key)
-      baseUrl: providerId === "ollama" ? config?.apiKey : undefined,
+      // For Ollama, return the base URL (stored in baseUrl field)
+      baseUrl: providerId === "ollama" ? config?.baseUrl : undefined,
     };
   });
 
@@ -38,7 +38,7 @@ export async function PATCH(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { providerId, enabled, apiKey } = body;
+  const { providerId, enabled, apiKey, baseUrl } = body;
 
   if (!providerId) {
     return NextResponse.json(
@@ -47,27 +47,29 @@ export async function PATCH(req: NextRequest) {
     );
   }
 
-  const existing = await db.query.providerConfigs.findFirst({
+  const existing = await db.query.modelProviderConfigs.findFirst({
     where: and(
-      eq(providerConfigs.userId, session.user.id),
-      eq(providerConfigs.providerId, providerId)
+      eq(modelProviderConfigs.userId, session.user.id),
+      eq(modelProviderConfigs.providerId, providerId)
     ),
   });
 
   if (existing) {
-    await db.update(providerConfigs)
+    await db.update(modelProviderConfigs)
       .set({
         enabled,
         apiKey: apiKey || existing.apiKey,
+        baseUrl: baseUrl || existing.baseUrl,
         updatedAt: new Date(),
       })
-      .where(eq(providerConfigs.id, existing.id));
+      .where(eq(modelProviderConfigs.id, existing.id));
   } else {
-    await db.insert(providerConfigs).values({
+    await db.insert(modelProviderConfigs).values({
       userId: session.user.id,
       providerId,
       enabled,
       apiKey,
+      baseUrl,
       models: PROVIDER_MODELS[providerId as keyof typeof PROVIDER_MODELS],
     });
   }

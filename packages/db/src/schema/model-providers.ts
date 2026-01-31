@@ -2,7 +2,13 @@ import { pgTable, uuid, varchar, timestamp, text, boolean, jsonb, index } from '
 import { relations } from 'drizzle-orm';
 import { users } from './user';
 
-export const providerConfigs = pgTable('provider_configs', {
+/**
+ * Model Provider Configurations
+ * 
+ * Stores API keys and settings for LLM providers (OpenAI, Anthropic, etc.)
+ * Used for chat completions, NOT for embeddings.
+ */
+export const modelProviderConfigs = pgTable('model_provider_configs', {
   id: uuid('id').defaultRandom().primaryKey(),
   userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   providerId: varchar('provider_id', { length: 50 }).notNull(),
@@ -13,9 +19,9 @@ export const providerConfigs = pgTable('provider_configs', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
-  userProviderIdx: index('provider_configs_user_provider_idx').on(table.userId, table.providerId),
+  userProviderIdx: index('model_provider_configs_user_provider_idx').on(table.userId, table.providerId),
 }));
 
-export const providerConfigsRelations = relations(providerConfigs, ({ one }) => ({
-  user: one(users, { fields: [providerConfigs.userId], references: [users.id] }),
+export const modelProviderConfigsRelations = relations(modelProviderConfigs, ({ one }) => ({
+  user: one(users, { fields: [modelProviderConfigs.userId], references: [users.id] }),
 }));

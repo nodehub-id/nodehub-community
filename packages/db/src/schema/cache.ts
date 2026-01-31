@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, timestamp, text, real, index, vector } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, timestamp, text, real, index, vector, smallint } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { users } from './user';
 
@@ -6,7 +6,12 @@ export const cacheEntries = pgTable('cache_entries', {
   id: uuid('id').defaultRandom().primaryKey(),
   userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
   queryHash: varchar('query_hash', { length: 64 }).notNull(),
-  queryEmbedding: vector('query_embedding', { dimensions: 1536 }),
+  // Vector with max dimensions - actual dimensions stored in embeddingDimensions
+  queryEmbedding: vector('query_embedding', { dimensions: 2000 }),
+  // Track actual embedding dimensions for matching (384, 768, 1024, 1536, etc.)
+  embeddingDimensions: smallint('embedding_dimensions'),
+  // Track which embedding provider generated this embedding
+  embeddingProvider: varchar('embedding_provider', { length: 50 }),
   response: text('response').notNull(),
   model: varchar('model', { length: 100 }).notNull(),
   promptTokens: real('prompt_tokens'),
@@ -18,6 +23,7 @@ export const cacheEntries = pgTable('cache_entries', {
   userIdIdx: index('cache_user_id_idx').on(table.userId),
   expiresAtIdx: index('cache_expires_at_idx').on(table.expiresAt),
 }));
+
 
 export const cacheEntriesRelations = relations(cacheEntries, ({ one }) => ({
   user: one(users, { fields: [cacheEntries.userId], references: [users.id] }),

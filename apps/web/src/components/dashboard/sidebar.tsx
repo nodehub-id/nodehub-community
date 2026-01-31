@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Key,
   Cloud,
+  Cpu,
   Database,
   BarChart3,
   Settings,
@@ -22,12 +23,14 @@ import { NodeHubLogo } from "@/components/logo";
 const navItems = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
   { href: "/dashboard/api-keys", label: "API Keys", icon: Key },
-  { href: "/dashboard/providers", label: "Providers", icon: Cloud },
+  { href: "/dashboard/providers", label: "Model Providers", icon: Cloud },
+  { href: "/dashboard/embeddings", label: "Embeddings", icon: Cpu },
   { href: "/dashboard/caching", label: "Caching", icon: Database },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/dashboard/logs", label: "Logs", icon: ScrollText },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
+
 
 export function DashboardSidebar() {
   const { data: session } = useSession();

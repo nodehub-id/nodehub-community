@@ -11,11 +11,12 @@ export const users = pgTable('users', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   accounts: many(accounts),
   sessions: many(sessions),
   apiKeys: many(apiKeys),
-  providerConfigs: many(providerConfigs),
+  modelProviderConfigs: many(modelProviderConfigs),
+  embeddingProviderConfig: one(embeddingProviderConfig),
   cacheEntries: many(cacheEntries),
   cacheStats: many(cacheStats),
   requestLogs: many(requestLogs),
@@ -63,6 +64,8 @@ export const verificationTokens = pgTable('verification_tokens', {
 
 // Import relations from other files
 import { apiKeys } from './api-keys';
-import { providerConfigs } from './providers';
+import { modelProviderConfigs } from './model-providers';
+import { embeddingProviderConfig } from './embedding-provider';
 import { cacheEntries, cacheStats } from './cache';
 import { requestLogs } from './analytics';
+

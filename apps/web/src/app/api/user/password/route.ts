@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db, users } from "@nodehub/db";
 import { eq } from "drizzle-orm";
-import { comparePassword, hashPassword } from "@nodehub/core/auth";
+import { verifyPassword, hashPassword } from "@nodehub/core/auth";
 import { z } from "zod";
+
 
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, "Current password is required"),
@@ -46,7 +47,8 @@ export async function POST(req: Request) {
     }
 
     // Verify current password
-    const isValid = await comparePassword(currentPassword, user.passwordHash);
+    const isValid = await verifyPassword(currentPassword, user.passwordHash);
+
     if (!isValid) {
       return NextResponse.json(
         { error: "Current password is incorrect" },

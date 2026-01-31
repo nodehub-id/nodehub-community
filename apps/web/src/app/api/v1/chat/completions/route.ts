@@ -3,17 +3,18 @@ import { validateApiKey } from "@nodehub/core/auth";
 import { SemanticCache } from "@nodehub/core/cache";
 import { createProvider, PROVIDER_MODELS } from "@nodehub/core/providers";
 import { maybeRunCleanup, getCleanupConfigFromEnv } from "@nodehub/core/cleanup";
-import { db, providerConfigs, requestLogs } from "@nodehub/db";
+import { db, modelProviderConfigs, requestLogs } from "@nodehub/db";
 import { eq, and } from "drizzle-orm";
 import { chatCompletionSchema } from "@nodehub/shared/validation";
 import { z } from "zod";
 
+
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
-  
+
   // Probabilistic cleanup (non-blocking, ~1% of requests)
   maybeRunCleanup(getCleanupConfigFromEnv());
-  
+
   // 1. Validate API key
   const authHeader = req.headers.get("authorization");
   if (!authHeader?.startsWith("Bearer ")) {
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest) {
 
   const apiKey = authHeader.slice(7);
   const keyData = await validateApiKey(apiKey);
-  
+
   if (!keyData) {
     return NextResponse.json(
       { error: { message: "Invalid API key", type: "authentication_error" } },
@@ -37,7 +38,7 @@ export async function POST(req: NextRequest) {
     // 2. Parse and validate request
     const body = await req.json();
     const parsed = chatCompletionSchema.safeParse(body);
-    
+
     if (!parsed.success) {
       return NextResponse.json(
         { error: { message: "Invalid request", type: "invalid_request_error", details: parsed.error.errors } },
@@ -78,7 +79,7 @@ export async function POST(req: NextRequest) {
           finish_reason: "stop",
         }],
         usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
-        nodehub: { 
+        nodehub: {
           cache_hit: true,
           cache_type: cached.hitType, // 'exact' or 'semantic'
           similarity: cached.similarity,
@@ -97,11 +98,11 @@ export async function POST(req: NextRequest) {
 
     // If no provider found, check if user has Ollama configured with this model
     if (!providerType) {
-      const ollamaConfig = await db.query.providerConfigs.findFirst({
+      const ollamaConfig = await db.query.modelProviderConfigs.findFirst({
         where: and(
-          eq(providerConfigs.userId, keyData.userId),
-          eq(providerConfigs.providerId, "ollama"),
-          eq(providerConfigs.enabled, true)
+          eq(modelProviderConfigs.userId, keyData.userId),
+          eq(modelProviderConfigs.providerId, "ollama"),
+          eq(modelProviderConfigs.enabled, true)
         ),
       });
 
@@ -131,13 +132,14 @@ export async function POST(req: NextRequest) {
     }
 
     // 5. Get provider configuration
-    const providerConfig = await db.query.providerConfigs.findFirst({
+    const providerConfig = await db.query.modelProviderConfigs.findFirst({
       where: and(
-        eq(providerConfigs.userId, keyData.userId),
-        eq(providerConfigs.providerId, providerType),
-        eq(providerConfigs.enabled, true)
+        eq(modelProviderConfigs.userId, keyData.userId),
+        eq(modelProviderConfigs.providerId, providerType),
+        eq(modelProviderConfigs.enabled, true)
       ),
     });
+
 
     if (!providerConfig || !providerConfig.apiKey) {
       return NextResponse.json(
@@ -167,7 +169,7 @@ export async function POST(req: NextRequest) {
             for await (const chunk of provider.chatCompletions(validated)) {
               const data = `data: ${JSON.stringify(chunk)}\n\n`;
               controller.enqueue(new TextEncoder().encode(data));
-              
+
               if (chunk.choices?.[0]?.message?.content) {
                 fullResponse += chunk.choices[0].message.content;
               }
@@ -176,7 +178,7 @@ export async function POST(req: NextRequest) {
                 usage.completion = chunk.usage.completion_tokens || 0;
               }
             }
-            
+
             controller.enqueue(new TextEncoder().encode("data: [DONE]\n\n"));
             controller.close();
 
@@ -204,7 +206,7 @@ export async function POST(req: NextRequest) {
       // Cache response
       const promptTokens = response.usage?.prompt_tokens || 0;
       const completionTokens = response.usage?.completion_tokens || 0;
-      
+
       await cache.set(
         keyData.userId,
         query,
