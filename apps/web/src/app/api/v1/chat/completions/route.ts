@@ -95,6 +95,34 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // If no provider found, check if user has Ollama configured with this model
+    if (!providerType) {
+      const ollamaConfig = await db.query.providerConfigs.findFirst({
+        where: and(
+          eq(providerConfigs.userId, keyData.userId),
+          eq(providerConfigs.providerId, "ollama"),
+          eq(providerConfigs.enabled, true)
+        ),
+      });
+
+      if (ollamaConfig) {
+        // Verify model exists in Ollama
+        const baseUrl = ollamaConfig.baseUrl || "http://localhost:11434";
+        try {
+          const ollamaResponse = await fetch(`${baseUrl}/api/tags`);
+          if (ollamaResponse.ok) {
+            const ollamaData = await ollamaResponse.json() as { models?: Array<{ name: string }> };
+            const availableModels = ollamaData.models?.map((m) => m.name) || [];
+            if (availableModels.includes(validated.model)) {
+              providerType = "ollama";
+            }
+          }
+        } catch {
+          // Ollama not reachable, ignore
+        }
+      }
+    }
+
     if (!providerType) {
       return NextResponse.json(
         { error: { message: `Model ${validated.model} not supported`, type: "invalid_request_error" } },
@@ -207,9 +235,12 @@ export async function POST(req: NextRequest) {
     }
   } catch (error) {
     console.error("API Error:", error);
+    const errorMessage = error instanceof Error ? error.message : "Internal server error";
+    const statusCode = (error as { statusCode?: number })?.statusCode || 500;
+    const errorType = statusCode === 429 ? "rate_limit_error" : statusCode >= 400 && statusCode < 500 ? "invalid_request_error" : "api_error";
     return NextResponse.json(
-      { error: { message: error instanceof Error ? error.message : "Internal server error", type: "api_error" } },
-      { status: 500 }
+      { error: { message: errorMessage, type: errorType } },
+      { status: statusCode }
     );
   }
 }

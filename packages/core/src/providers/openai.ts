@@ -12,7 +12,17 @@ export class OpenAIProvider extends BaseProvider {
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.statusText}`);
+      const errorBody = await response.text();
+      let errorMessage = response.statusText;
+      try {
+        const errorData = JSON.parse(errorBody);
+        errorMessage = errorData.error?.message || errorData.message || response.statusText;
+      } catch {
+        errorMessage = errorBody || response.statusText;
+      }
+      const error = new Error(errorMessage) as Error & { statusCode: number };
+      error.statusCode = response.status;
+      throw error;
     }
 
     if (request.stream) {

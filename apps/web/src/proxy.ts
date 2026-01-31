@@ -18,7 +18,8 @@ export async function proxy(request: NextRequest) {
                       pathname.startsWith('/register');
   const isApiAuthRoute = pathname.startsWith('/api/auth');
   const isPublicApiRoute = pathname.startsWith('/api/health') ||
-                           pathname.startsWith('/api/register');
+                           pathname.startsWith('/api/register') ||
+                           pathname.startsWith('/api/v1/');
 
   // Allow API auth routes and public API routes
   if (isApiAuthRoute || isPublicApiRoute) {
