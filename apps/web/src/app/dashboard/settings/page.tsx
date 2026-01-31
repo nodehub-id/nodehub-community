@@ -5,10 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { User, Bell, Shield, Palette, Save, AlertCircle } from "lucide-react";
+import { User, Shield, Palette, Save, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "next-themes";
@@ -24,13 +24,6 @@ export default function SettingsPage() {
     email: "admin@example.com",
   });
 
-  const [notifications, setNotifications] = useState({
-    emailAlerts: true,
-    usageReports: true,
-    securityAlerts: true,
-    marketingEmails: false,
-  });
-
   function handleSaveProfile() {
     setIsLoading(true);
     setTimeout(() => {
@@ -40,13 +33,6 @@ export default function SettingsPage() {
         description: "Profile updated successfully",
       });
     }, 1000);
-  }
-
-  function handleSaveNotifications() {
-    toast({
-      title: "Success",
-      description: "Notification preferences saved",
-    });
   }
 
   return (
@@ -63,10 +49,6 @@ export default function SettingsPage() {
           <TabsTrigger value="profile">
             <User className="mr-2 h-4 w-4" />
             Profile
-          </TabsTrigger>
-          <TabsTrigger value="notifications">
-            <Bell className="mr-2 h-4 w-4" />
-            Notifications
           </TabsTrigger>
           <TabsTrigger value="appearance">
             <Palette className="mr-2 h-4 w-4" />
@@ -130,68 +112,6 @@ export default function SettingsPage() {
               <Button onClick={handleSaveProfile} disabled={isLoading}>
                 <Save className="mr-2 h-4 w-4" />
                 {isLoading ? "Saving..." : "Save Changes"}
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="notifications" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Notification Preferences</CardTitle>
-              <CardDescription>
-                Choose what notifications you want to receive
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Email Alerts</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Receive alerts about your API usage and limits
-                  </p>
-                </div>
-                <Switch
-                  checked={notifications.emailAlerts}
-                  onCheckedChange={(checked) =>
-                    setNotifications((prev) => ({ ...prev, emailAlerts: checked }))
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Weekly Usage Reports</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Get weekly summaries of your API usage
-                  </p>
-                </div>
-                <Switch
-                  checked={notifications.usageReports}
-                  onCheckedChange={(checked) =>
-                    setNotifications((prev) => ({ ...prev, usageReports: checked }))
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Security Alerts</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Get notified about suspicious login attempts
-                  </p>
-                </div>
-                <Switch
-                  checked={notifications.securityAlerts}
-                  onCheckedChange={(checked) =>
-                    setNotifications((prev) => ({ ...prev, securityAlerts: checked }))
-                  }
-                />
-              </div>
-
-              <Button onClick={handleSaveNotifications}>
-                <Save className="mr-2 h-4 w-4" />
-                Save Preferences
               </Button>
             </CardContent>
           </Card>
