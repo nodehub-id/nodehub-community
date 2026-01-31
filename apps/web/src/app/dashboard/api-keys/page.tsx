@@ -30,6 +30,7 @@ interface ApiKey {
   keyPreview: string;
   createdAt: string;
   lastUsedAt: string | null;
+  isActive: boolean;
 }
 
 export default function ApiKeysPage() {
@@ -51,7 +52,9 @@ export default function ApiKeysPage() {
       const response = await fetch("/api/keys");
       if (response.ok) {
         const data = await response.json();
-        setKeys(data.keys);
+        // Filter to only show active keys
+        const activeKeys = data.keys.filter((key: ApiKey) => key.isActive !== false);
+        setKeys(activeKeys);
       }
     } catch (error) {
       toast({
