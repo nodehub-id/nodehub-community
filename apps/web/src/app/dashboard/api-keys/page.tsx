@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Key, Copy, Trash2, AlertCircle, Check } from "lucide-react";
+import { Key, Copy, Trash2, AlertCircle, Check, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -39,6 +39,7 @@ export default function ApiKeysPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [deletingKeyId, setDeletingKeyId] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -103,18 +104,29 @@ export default function ApiKeysPage() {
   }
 
   async function deleteKey(id: string) {
+    setDeletingKeyId(id);
+
+    // Store the key being deleted for potential restoration
+    const keyToDelete = keys.find((key) => key.id === id);
+
+    // Optimistically remove the key from the array
+    setKeys(keys.filter((key) => key.id !== id));
+
     try {
       const response = await fetch(`/api/keys/${id}`, {
         method: "DELETE",
       });
 
       if (response.ok) {
-        fetchKeys();
         toast({
           title: "Success",
           description: "API key deleted successfully",
         });
       } else {
+        // Restore the key if deletion failed
+        if (keyToDelete) {
+          setKeys((prev) => [...prev, keyToDelete]);
+        }
         toast({
           title: "Error",
           description: "Failed to delete API key",
@@ -122,11 +134,37 @@ export default function ApiKeysPage() {
         });
       }
     } catch (error) {
+      // Restore the key if deletion failed
+      if (keyToDelete) {
+        setKeys((prev) => [...prev, keyToDelete]);
+      }
       toast({
         title: "Error",
         description: "Failed to delete API key",
         variant: "destructive",
       });
+    } finally {
+      setDeletingKeyId(null);
+    }
+  }
+        toast({
+          title: "Error",
+          description: "Failed to delete API key",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      // Restore the key if deletion failed
+      if (keyToDelete) {
+        setKeys((prev) => [...prev, keyToDelete]);
+      }
+      toast({
+        title: "Error",
+        description: "Failed to delete API key",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingKeyId(null);
     }
   }
 
@@ -204,13 +242,24 @@ export default function ApiKeysPage() {
               <code className="flex-1 bg-muted p-3 rounded text-sm break-all">
                 {createdKey}
               </code>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => copyToClipboard(createdKey)}
-              >
-                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-              </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => deleteKey(key.id)}
+                    disabled={deletingKeyId === key.id}
+                  >
+                    {deletingKeyId === key.id ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Revoking...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Revoke
+                      </>
+                    )}
+                  </Button>
             </div>
             <Button
               className="mt-4"
@@ -254,9 +303,19 @@ export default function ApiKeysPage() {
                     variant="destructive"
                     size="sm"
                     onClick={() => deleteKey(key.id)}
+                    disabled={deletingKeyId === key.id}
                   >
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Revoke
+                    {deletingKeyId === key.id ? (
+                      <>
+                        <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        Revoking...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Revoke
+                      </>
+                    )}
                   </Button>
                 </div>
               </CardHeader>
