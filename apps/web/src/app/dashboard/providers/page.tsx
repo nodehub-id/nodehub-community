@@ -119,20 +119,6 @@ export default function ProvidersPage() {
   }
 
   async function updateProvider(providerId: string, enabled: boolean, apiKey?: string, baseUrl?: string) {
-    // Check if trying to enable without API key
-    const requiresKey = PROVIDER_INFO[providerId]?.requiresKey;
-    const provider = providers.find(p => p.id === providerId);
-    const hasKey = provider?.apiKeySet || apiKey || (providerId === "ollama" && (baseUrl || baseUrls[providerId]));
-    
-    if (enabled && requiresKey && !hasKey) {
-      toast({
-        title: "API Key Required",
-        description: `Please enter and save your ${provider?.name} API key first`,
-        variant: "destructive",
-      });
-      return;
-    }
-    
     setIsLoading((prev) => ({ ...prev, [providerId]: true }));
     try {
       // For Ollama, we store the baseUrl as the apiKey in the database
@@ -223,20 +209,27 @@ export default function ProvidersPage() {
                     </CardDescription>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {provider.apiKeySet && (
-                    <Badge variant="outline" className="text-green-600">
-                      <Check className="h-3 w-3 mr-1" />
-                      Configured
-                    </Badge>
+                <div className="flex flex-col items-end gap-1">
+                  <div className="flex items-center gap-2">
+                    {provider.apiKeySet && (
+                      <Badge variant="outline" className="text-green-600">
+                        <Check className="h-3 w-3 mr-1" />
+                        Configured
+                      </Badge>
+                    )}
+                    <Switch
+                      checked={provider.enabled}
+                      onCheckedChange={(checked) =>
+                        updateProvider(provider.id, checked)
+                      }
+                      disabled={isLoading[provider.id] || (!provider.apiKeySet && PROVIDER_INFO[provider.id]?.requiresKey)}
+                    />
+                  </div>
+                  {!provider.apiKeySet && PROVIDER_INFO[provider.id]?.requiresKey && (
+                    <span className="text-xs text-muted-foreground">
+                      Save {isOllama(provider.id) ? "Base URL" : "API key"} to enable
+                    </span>
                   )}
-                  <Switch
-                    checked={provider.enabled}
-                    onCheckedChange={(checked) =>
-                      updateProvider(provider.id, checked)
-                    }
-                    disabled={isLoading[provider.id]}
-                  />
                 </div>
               </div>
             </CardHeader>
