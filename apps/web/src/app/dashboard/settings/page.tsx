@@ -34,6 +34,13 @@ export default function SettingsPage() {
     image: null,
   });
 
+  // Password change state
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+
   useEffect(() => {
     fetchUserProfile();
   }, []);
@@ -86,6 +93,8 @@ export default function SettingsPage() {
         setUserData(updatedUser);
         // Update the session so sidebar reflects the change
         await updateSession({ name: updatedUser.name });
+        // Force session refetch to update sidebar immediately
+        await updateSession();
         toast({
           title: "Success",
           description: "Profile updated successfully",
@@ -105,6 +114,63 @@ export default function SettingsPage() {
       });
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  async function handleChangePassword() {
+    setPasswordError("");
+
+    if (!currentPassword.trim() || !newPassword.trim() || !confirmPassword.trim()) {
+      setPasswordError("All fields are required");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError("New passwords do not match");
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setPasswordError("Password must be at least 8 characters");
+      return;
+    }
+
+    setIsChangingPassword(true);
+
+    try {
+      const response = await fetch("/api/user/password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentPassword,
+          newPassword,
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Password updated successfully",
+        });
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        const data = await response.json();
+        toast({
+          title: "Error",
+          description: data.error || "Failed to update password",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update password",
+        variant: "destructive",
+      });
+    } finally {
+      setIsChangingPassword(false);
     }
   }
 
