@@ -260,26 +260,6 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Two-Factor Authentication</CardTitle>
-              <CardDescription>
-                Add an extra layer of security to your account
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Authenticator App</p>
-                  <p className="text-sm text-muted-foreground">
-                    Use an authenticator app to generate codes
-                  </p>
-                </div>
-                <Button variant="outline">Enable 2FA</Button>
-              </div>
-            </CardContent>
-          </Card>
-
           <Card className="border-destructive">
             <CardHeader>
               <CardTitle className="text-destructive">Danger Zone</CardTitle>
@@ -292,7 +272,7 @@ export default function SettingsPage() {
                 <div>
                   <p className="font-medium">Delete Account</p>
                   <p className="text-sm text-muted-foreground">
-                    Permanently delete your account and all data
+                    Permanently delete your account and all associated data
                   </p>
                 </div>
                 <Button variant="destructive">Delete Account</Button>
