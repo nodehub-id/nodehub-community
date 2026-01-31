@@ -222,24 +222,13 @@ export default function ApiKeysPage() {
               <code className="flex-1 bg-muted p-3 rounded text-sm break-all">
                 {createdKey}
               </code>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => deleteKey(key.id)}
-                    disabled={deletingKeyId === key.id}
-                  >
-                    {deletingKeyId === key.id ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Revoking...
-                      </>
-                    ) : (
-                      <>
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        Revoke
-                      </>
-                    )}
-                  </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => copyToClipboard(createdKey)}
+              >
+                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              </Button>
             </div>
             <Button
               className="mt-4"
