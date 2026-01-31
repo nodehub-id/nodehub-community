@@ -1,15 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Database, Trash2, RefreshCw, AlertCircle, Check, Lock } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+
+interface CacheStats {
+  totalEntries: number;
+  exactHits: number;
+  semanticHits: number;
+  totalSavings: string;
+  hitRate: string;
+  storageUsed: string;
+  totalRequests: number;
+}
 
 export default function CachingPage() {
   const { toast } = useToast();
@@ -17,18 +28,48 @@ export default function CachingPage() {
   const [semanticCache, setSemanticCache] = useState(true);
   const [ttlDays, setTtlDays] = useState(7);
   const [isClearing, setIsClearing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [cacheStats, setCacheStats] = useState<CacheStats>({
+    totalEntries: 0,
+    exactHits: 0,
+    semanticHits: 0,
+    totalSavings: "$0.00",
+    hitRate: "0%",
+    storageUsed: "0 B",
+    totalRequests: 0,
+  });
 
   // Community Edition: Fixed at 0.95 (95%)
   const SIMILARITY_THRESHOLD = 95;
 
-  const cacheStats = {
-    totalEntries: 1247,
-    exactHits: 843,
-    semanticHits: 312,
-    totalSavings: "$156.42",
-    hitRate: "32%",
-    storageUsed: "45.2 MB",
-  };
+  useEffect(() => {
+    fetchCacheStats();
+  }, []);
+
+  async function fetchCacheStats() {
+    try {
+      setIsLoading(true);
+      const response = await fetch("/api/cache/stats");
+      if (response.ok) {
+        const data = await response.json();
+        setCacheStats(data);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to fetch cache statistics",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch cache statistics",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   async function clearCache() {
     setIsClearing(true);
@@ -57,6 +98,14 @@ export default function CachingPage() {
     });
   }
 
+  async function refreshStats() {
+    await fetchCacheStats();
+    toast({
+      title: "Stats refreshed",
+      description: "Cache statistics have been updated",
+    });
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -80,7 +129,11 @@ export default function CachingPage() {
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{cacheStats.totalEntries.toLocaleString()}</div>
+            {isLoading ? (
+              <Skeleton className="h-8 w-24" />
+            ) : (
+              <div className="text-2xl font-bold">{cacheStats.totalEntries.toLocaleString()}</div>
+            )}
           </CardContent>
         </Card>
 
@@ -90,7 +143,11 @@ export default function CachingPage() {
             <Check className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{cacheStats.hitRate}</div>
+            {isLoading ? (
+              <Skeleton className="h-8 w-20" />
+            ) : (
+              <div className="text-2xl font-bold">{cacheStats.hitRate}</div>
+            )}
           </CardContent>
         </Card>
 
@@ -100,7 +157,11 @@ export default function CachingPage() {
             <span className="text-2xl">$</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{cacheStats.totalSavings}</div>
+            {isLoading ? (
+              <Skeleton className="h-8 w-28" />
+            ) : (
+              <div className="text-2xl font-bold">{cacheStats.totalSavings}</div>
+            )}
           </CardContent>
         </Card>
 
@@ -110,7 +171,11 @@ export default function CachingPage() {
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{cacheStats.storageUsed}</div>
+            {isLoading ? (
+              <Skeleton className="h-8 w-24" />
+            ) : (
+              <div className="text-2xl font-bold">{cacheStats.storageUsed}</div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -226,10 +291,11 @@ export default function CachingPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => toast({ title: "Stats refreshed" })}
+                  onClick={refreshStats}
+                  disabled={isLoading}
                 >
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Refresh
+                  <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+                  {isLoading ? "Refreshing..." : "Refresh"}
                 </Button>
               </div>
             </div>
@@ -253,14 +319,22 @@ export default function CachingPage() {
           <div className="grid gap-4 md:grid-cols-2">
             <div className="p-4 bg-muted rounded-lg">
               <p className="text-sm font-medium">Exact Matches</p>
-              <p className="text-2xl font-bold mt-1">{cacheStats.exactHits.toLocaleString()}</p>
+              {isLoading ? (
+                <Skeleton className="h-8 w-24 mt-1" />
+              ) : (
+                <p className="text-2xl font-bold mt-1">{cacheStats.exactHits.toLocaleString()}</p>
+              )}
               <p className="text-xs text-muted-foreground mt-1">
                 Identical questions receiving cached responses
               </p>
             </div>
             <div className="p-4 bg-muted rounded-lg">
               <p className="text-sm font-medium">Semantic Matches</p>
-              <p className="text-2xl font-bold mt-1">{cacheStats.semanticHits.toLocaleString()}</p>
+              {isLoading ? (
+                <Skeleton className="h-8 w-24 mt-1" />
+              ) : (
+                <p className="text-2xl font-bold mt-1">{cacheStats.semanticHits.toLocaleString()}</p>
+              )}
               <p className="text-xs text-muted-foreground mt-1">
                 Similar questions matched using AI embeddings (95% similarity)
               </p>
