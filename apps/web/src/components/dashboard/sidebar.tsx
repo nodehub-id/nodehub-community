@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
   LayoutDashboard,
   Key,
@@ -17,14 +18,6 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 
-interface SidebarProps {
-  user: {
-    email?: string | null;
-    name?: string | null;
-    image?: string | null;
-  };
-}
-
 const navItems = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
   { href: "/dashboard/api-keys", label: "API Keys", icon: Key },
@@ -35,7 +28,9 @@ const navItems = [
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
-export function DashboardSidebar({ user }: SidebarProps) {
+export function DashboardSidebar() {
+  const { data: session } = useSession();
+  const user = session?.user;
   const pathname = usePathname();
 
   return (

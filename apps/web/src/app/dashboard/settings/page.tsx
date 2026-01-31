@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,31 +8,104 @@ import { Label } from "@/components/ui/label";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { User, Shield, Palette, Save, AlertCircle } from "lucide-react";
+import { User, Shield, Palette, Save, AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "next-themes";
+import { useSession } from "next-auth/react";
+
+interface UserData {
+  id: string;
+  name: string | null;
+  email: string | null;
+  image: string | null;
+}
 
 export default function SettingsPage() {
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
+  const { update: updateSession } = useSession();
   const [isLoading, setIsLoading] = useState(false);
-
-  // Mock user data - in real app, this would come from session/api
-  const [userData, setUserData] = useState({
-    name: "Admin User",
-    email: "admin@example.com",
+  const [isSaving, setIsSaving] = useState(false);
+  const [userData, setUserData] = useState<UserData>({
+    id: "",
+    name: "",
+    email: "",
+    image: null,
   });
 
-  function handleSaveProfile() {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+  useEffect(() => {
+    fetchUserProfile();
+  }, []);
+
+  async function fetchUserProfile() {
+    try {
+      setIsLoading(true);
+      const response = await fetch("/api/user/profile");
+      if (response.ok) {
+        const data = await response.json();
+        setUserData(data);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to load profile",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
       toast({
-        title: "Success",
-        description: "Profile updated successfully",
+        title: "Error",
+        description: "Failed to load profile",
+        variant: "destructive",
       });
-    }, 1000);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleSaveProfile() {
+    if (!userData.name?.trim()) {
+      toast({
+        title: "Error",
+        description: "Name cannot be empty",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const response = await fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: userData.name }),
+      });
+
+      if (response.ok) {
+        const updatedUser = await response.json();
+        setUserData(updatedUser);
+        // Update the session so sidebar reflects the change
+        await updateSession({ name: updatedUser.name });
+        toast({
+          title: "Success",
+          description: "Profile updated successfully",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to update profile",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update profile",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
@@ -85,34 +158,53 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input
-                    id="name"
-                    value={userData.name}
-                    onChange={(e) =>
-                      setUserData((prev) => ({ ...prev, name: e.target.value }))
-                    }
-                  />
+              {isLoading ? (
+                <div className="flex items-center gap-2 py-4">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span className="text-sm text-muted-foreground">Loading profile...</span>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={userData.email}
-                    onChange={(e) =>
-                      setUserData((prev) => ({ ...prev, email: e.target.value }))
-                    }
-                  />
-                </div>
-              </div>
+              ) : (
+                <>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Full Name</Label>
+                      <Input
+                        id="name"
+                        value={userData.name || ""}
+                        onChange={(e) =>
+                          setUserData((prev) => ({ ...prev, name: e.target.value }))
+                        }
+                        disabled={isSaving}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={userData.email || ""}
+                        disabled
+                        className="bg-muted"
+                      />
+                      <p className="text-xs text-muted-foreground">Email cannot be changed</p>
+                    </div>
+                  </div>
 
-              <Button onClick={handleSaveProfile} disabled={isLoading}>
-                <Save className="mr-2 h-4 w-4" />
-                {isLoading ? "Saving..." : "Save Changes"}
-              </Button>
+                  <Button onClick={handleSaveProfile} disabled={isSaving || !userData.name?.trim()}>
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="mr-2 h-4 w-4" />
+                        Save Changes
+                      </>
+                    )}
+                  </Button>
+                </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
