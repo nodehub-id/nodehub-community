@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { User, Bell, Shield, Palette, Save } from "lucide-react";
+import { User, Bell, Shield, Palette, Save, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "next-themes";
 
@@ -260,25 +261,12 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-destructive">
-            <CardHeader>
-              <CardTitle className="text-destructive">Danger Zone</CardTitle>
-              <CardDescription>
-                Irreversible and destructive actions
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Delete Account</p>
-                  <p className="text-sm text-muted-foreground">
-                    Permanently delete your account and all associated data
-                  </p>
-                </div>
-                <Button variant="destructive">Delete Account</Button>
-              </div>
-            </CardContent>
-          </Card>
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Community Edition is single-user. To reset all data, stop the server and delete the database, then restart.
+            </AlertDescription>
+          </Alert>
         </TabsContent>
       </Tabs>
     </div>
