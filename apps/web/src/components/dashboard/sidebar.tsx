@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { NodeHubLogo } from "@/components/logo";
 
 const navItems = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
@@ -37,10 +38,8 @@ export function DashboardSidebar() {
     <aside className="w-64 border-r bg-background flex flex-col">
       <div className="p-6">
         <Link href="/dashboard" className="flex items-center gap-2 font-bold text-xl">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
-            N
-          </div>
-          NodeHub
+          <NodeHubLogo className="w-8 h-8 text-foreground" />
+          <span>NodeHub</span>
         </Link>
       </div>
 
