@@ -147,26 +147,6 @@ export default function ApiKeysPage() {
       setDeletingKeyId(null);
     }
   }
-        toast({
-          title: "Error",
-          description: "Failed to delete API key",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      // Restore the key if deletion failed
-      if (keyToDelete) {
-        setKeys((prev) => [...prev, keyToDelete]);
-      }
-      toast({
-        title: "Error",
-        description: "Failed to delete API key",
-        variant: "destructive",
-      });
-    } finally {
-      setDeletingKeyId(null);
-    }
-  }
 
   function copyToClipboard(text: string) {
     navigator.clipboard.writeText(text);
