@@ -81,6 +81,15 @@ export default function ProvidersPage() {
       if (response.ok) {
         const data = await response.json();
         setProviders(data.providers);
+        
+        // Populate baseUrls from provider data (for Ollama)
+        const urls: Record<string, string> = {};
+        for (const provider of data.providers as Provider[]) {
+          if (provider.baseUrl) {
+            urls[provider.id] = provider.baseUrl;
+          }
+        }
+        setBaseUrls((prev) => ({ ...prev, ...urls }));
       }
     } catch (error) {
       toast({

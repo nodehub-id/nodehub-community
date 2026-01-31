@@ -23,6 +23,8 @@ export async function GET() {
       enabled: config?.enabled || false,
       models: PROVIDER_MODELS[providerId as keyof typeof PROVIDER_MODELS],
       apiKeySet: !!config?.apiKey,
+      // For Ollama, return the base URL so it can be displayed (not a sensitive API key)
+      baseUrl: providerId === "ollama" ? config?.apiKey : undefined,
     };
   });
 
