@@ -206,9 +206,10 @@ nodehub-community/
    - Fast lookup (~5ms)
    - Zero API cost on hit
 2. **Semantic Match**: pgvector cosine similarity
-   - 1536-dimensional embeddings (text-embedding-3-small)
+   - Local embeddings via @xenova/transformers (Xenova/all-MiniLM-L6-v2, 384 dimensions)
    - Fixed similarity threshold: 0.95 (Community Edition)
-   - Requires `OPENAI_API_KEY` for embedding generation
+   - **No API key required** - works out of the box
+   - Optional: Configure OpenAI, Ollama, HuggingFace TEI for different embedding models
    - ~50ms lookup time
 
 **Cache Flow:**
@@ -228,8 +229,13 @@ Query → Exact Hash Match? → Yes → Return cached response
 - 7-day retention (Community Edition)
 
 **Configuration:**
-- `OPENAI_API_KEY` - Required for semantic caching (embeddings)
-- Without API key: Falls back to exact-match only
+- **Default**: Local embeddings via @xenova/transformers (no configuration needed)
+- **Optional**: Configure `EMBEDDING_PROVIDER` environment variable to use:
+  - `local` (default) - Xenova/all-MiniLM-L6-v2, 384 dimensions
+  - `ollama` - Self-hosted embeddings (e.g., nomic-embed-text, 768 dimensions)
+  - `huggingface-tei` - HuggingFace Text Embeddings Inference
+  - `openai` - text-embedding-3-small, 1536 dimensions (requires `OPENAI_API_KEY`)
+- Without embeddings: Falls back to exact-match only
 
 ### Provider System
 

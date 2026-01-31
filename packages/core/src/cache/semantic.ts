@@ -130,8 +130,13 @@ export class SemanticCache {
       // Cosine distance = 1 - cosine similarity
       const maxDistance = 1 - this.config.similarityThreshold;
 
-      // Format embedding as pgvector string
-      const embeddingStr = `[${queryEmbedding.join(',')}]`;
+      // Format embedding as pgvector string (pad to 2000 dimensions to match schema)
+      const TARGET_DIMENSIONS = 2000;
+      const paddedEmbedding = [...queryEmbedding];
+      while (paddedEmbedding.length < TARGET_DIMENSIONS) {
+        paddedEmbedding.push(0);
+      }
+      const embeddingStr = `[${paddedEmbedding.join(',')}]`;
 
       // Raw SQL query for pgvector similarity search
       // Only match entries with the same embedding dimensions
@@ -198,14 +203,20 @@ export class SemanticCache {
     // Insert cache entry
     if (queryEmbedding) {
       // With embedding - use raw SQL for pgvector
-      const embeddingStr = `[${queryEmbedding.join(',')}]`;
+      // Pad embedding to 2000 dimensions to match schema
+      const TARGET_DIMENSIONS = 2000;
+      const paddedEmbedding = [...queryEmbedding];
+      while (paddedEmbedding.length < TARGET_DIMENSIONS) {
+        paddedEmbedding.push(0);
+      }
+      const embeddingStr = `[${paddedEmbedding.join(',')}]`;
       await db.execute(sql`
         INSERT INTO cache_entries (
           user_id, query_hash, query_embedding, embedding_dimensions, embedding_provider,
           response, model, prompt_tokens, completion_tokens, expires_at
         ) VALUES (
           ${userId}, ${queryHash}, ${embeddingStr}::vector, ${embeddingDimensions}, ${embeddingProvider},
-          ${response}, ${model}, ${tokens.prompt}, ${tokens.completion}, ${expiresAt}
+          ${response}, ${model}, ${tokens.prompt}, ${tokens.completion}, ${expiresAt.toISOString()}
         )
       `);
     } else {

@@ -16,7 +16,7 @@ cd nodehub-community
 cp .env.example .env
 # Edit .env and set:
 #   - DATABASE_URL, AUTH_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD (required)
-#   - OPENAI_API_KEY (required for semantic caching)
+#   - Provider API keys (optional - configure in dashboard)
 
 # 3. Start with Docker (recommended)
 docker compose up -d
@@ -57,9 +57,10 @@ docker compose up -d
 ### Caching
 - **Exact Match** - SHA-256 hash-based fast lookup (~5ms)
 - **Semantic Match** - pgvector cosine similarity search (~50ms)
-  - Uses OpenAI text-embedding-3-small (1536 dimensions)
+  - Uses local embeddings via @xenova/transformers (Xenova/all-MiniLM-L6-v2, 384 dimensions)
   - Fixed similarity threshold: 0.95
-  - Requires `OPENAI_API_KEY` for embeddings
+  - **No API key required** - works out of the box
+  - Optional: Configure OpenAI, Ollama, or other embedding providers
 - **TTL** - 24-hour default cache expiration
 - **Stats** - Daily cache hit/miss tracking
 

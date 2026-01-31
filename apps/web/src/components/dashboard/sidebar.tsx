@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import {
   LayoutDashboard,
   Key,
@@ -73,12 +73,15 @@ export function DashboardSidebar() {
           <p className="text-sm font-medium truncate">{user?.name || user?.email || "User"}</p>
           <p className="text-xs text-muted-foreground truncate">{user?.email || ""}</p>
         </div>
-        <form action="/api/auth/signout" method="POST">
-          <Button type="submit" variant="outline" className="w-full" size="sm">
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
-          </Button>
-        </form>
+        <Button 
+          variant="outline" 
+          className="w-full" 
+          size="sm"
+          onClick={() => signOut({ callbackUrl: "/login" })}
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          Sign Out
+        </Button>
       </div>
     </aside>
   );

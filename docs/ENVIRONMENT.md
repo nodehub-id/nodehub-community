@@ -55,16 +55,14 @@ GITHUB_SECRET=your-github-client-secret
 
 Can also be configured via dashboard. Environment variables take precedence.
 
-#### OPENAI_API_KEY (Required for Semantic Caching)
-OpenAI API key used for:
-1. **Embedding generation** - Powers semantic caching (text-embedding-3-small)
-2. **GPT models** - GPT-4o, GPT-4o-mini, etc.
+#### OPENAI_API_KEY
+OpenAI API key for GPT models (GPT-4o, GPT-4o-mini, etc.).
 
 ```bash
 OPENAI_API_KEY=sk-...
 ```
 
-**Important:** Without this key, only exact-match caching works. Semantic caching (which provides 40-50% hit rates) requires embeddings.
+**Note:** Semantic caching works out of the box using local embeddings (Xenova/all-MiniLM-L6-v2). No OpenAI key required for caching. This key is only needed if you want to use OpenAI models or configure OpenAI as your embedding provider.
 
 #### Other Provider Keys
 ```bash
@@ -72,6 +70,50 @@ ANTHROPIC_API_KEY=sk-ant-...
 GOOGLE_API_KEY=...
 GROQ_API_KEY=gsk_...
 OLLAMA_BASE_URL=http://localhost:11434
+```
+
+### Embedding Provider Configuration
+
+Semantic caching uses local embeddings by default (no configuration needed). To use a different embedding provider:
+
+#### EMBEDDING_PROVIDER
+Choose embedding provider: `local` (default), `ollama`, `huggingface-tei`, `openai`
+
+```bash
+EMBEDDING_PROVIDER=local
+```
+
+**Default:** `local` - Uses Xenova/all-MiniLM-L6-v2 model (384 dimensions, no API key required)
+
+#### EMBEDDING_MODEL
+Override the default model for your chosen provider:
+
+```bash
+# For local provider (Xenova/transformers)
+EMBEDDING_MODEL=Xenova/all-MiniLM-L6-v2
+
+# For Ollama provider
+EMBEDDING_MODEL=nomic-embed-text
+
+# For OpenAI provider
+EMBEDDING_MODEL=text-embedding-3-small
+```
+
+#### Provider-Specific URLs
+```bash
+# Ollama embedding server URL
+EMBEDDING_OLLAMA_URL=http://localhost:11434
+
+# HuggingFace Text Embeddings Inference URL
+EMBEDDING_TEI_URL=http://localhost:8080
+```
+
+#### OPENAI_API_KEY (for embeddings)
+If using OpenAI as your embedding provider:
+
+```bash
+OPENAI_API_KEY=sk-...
+EMBEDDING_PROVIDER=openai
 ```
 
 ### Server Configuration

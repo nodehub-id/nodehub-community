@@ -112,8 +112,9 @@ View detailed usage statistics and metrics.
 
 View and manage semantic caching settings.
 
-**Community Edition Settings (Fixed):**
+**Community Edition Settings:**
 - **Semantic Caching**: Always enabled
+- **Embedding Provider**: Local (Xenova/all-MiniLM-L6-v2, 384 dimensions)
 - **Similarity Threshold**: 0.95
 - **Default TTL**: 24 hours
 - **Storage**: PostgreSQL + pgvector
@@ -122,6 +123,16 @@ View and manage semantic caching settings.
 - View current cache statistics
 - Clear all cached responses (destructive action)
 - See caching configuration details
+- **No API key required** - embeddings run locally using @xenova/transformers
+
+**Embedding Provider Options:**
+You can optionally configure a different embedding provider via environment variables:
+- **Local** (default): Xenova/all-MiniLM-L6-v2 - free, runs in-process
+- **Ollama**: Self-hosted embeddings (e.g., nomic-embed-text)
+- **HuggingFace TEI**: Text Embeddings Inference server
+- **OpenAI**: text-embedding-3-small (requires API key)
+
+See [ENVIRONMENT.md](./ENVIRONMENT.md) for configuration details.
 
 **Upgrade Notice:**
 Community Edition uses optimized caching settings. Full Edition allows:
@@ -129,6 +140,7 @@ Community Edition uses optimized caching settings. Full Edition allows:
 - Dynamic TTL based on query type
 - Response fragmentation
 - Advanced analytics
+- Dashboard-based embedding provider selection
 
 ---
 

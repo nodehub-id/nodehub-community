@@ -126,23 +126,15 @@ After logging in, complete these steps:
 - Clear Next.js cache: `rm -rf apps/web/.next`
 - Restart dev server: `pnpm dev`
 
+**UI Component errors (e.g., "Module not found: Can't resolve '@radix-ui/...'"):**
+- Run `pnpm install` to install missing dependencies
+- Some shadcn/ui components may require manual installation
+
 **Authentication issues:**
 - Verify AUTH_SECRET is set and at least 32 characters
 - Check that cookies are enabled in your browser
 - Look for "Default admin user created" message in startup logs
-- If locked out, check database directly: `docker compose exec db psql -U nodehub -c "SELECT * FROM users;"`
-
-## Troubleshooting
-
-**Database connection errors:**
-- Check that PostgreSQL is running
-- Verify DATABASE_URL is correct
-- Ensure pgvector extension is installed
-
-**Build errors:**
-- Run `pnpm install` to ensure all dependencies are installed
-- Clear `.next` folder: `rm -rf apps/web/.next`
-
-**Authentication issues:**
-- Verify AUTH_SECRET is set and at least 32 characters
-- Check that cookies are enabled in your browser
+- If you get "User not found" error when saving provider settings:
+  - Your session may reference a deleted user
+  - **Solution:** Sign out and sign back in to recreate your user session
+- If locked out, check database directly: `docker compose exec db psql -U nodehub -c "SELECT * FROM users;""

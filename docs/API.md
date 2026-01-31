@@ -109,7 +109,7 @@ Returns all available models from configured providers, including dynamically de
 
 **Endpoint:** `POST /api/v1/embeddings`
 
-**Status:** ⚠️ Stub Implementation - Returns placeholder responses. Full implementation requires OpenAI API key for embedding generation.
+**Status:** ⚠️ Stub Implementation - Returns placeholder responses for API compatibility. Full embedding generation is used internally for semantic caching but the API endpoint returns empty arrays to maintain OpenAI compatibility.
 
 **Request Body:**
 ```json
@@ -127,7 +127,7 @@ Returns all available models from configured providers, including dynamically de
     {
       "object": "embedding",
       "index": 0,
-      "embedding": []  // Currently empty - full implementation pending
+      "embedding": []  // Empty array - endpoint returns stub for compatibility
     }
   ],
   "model": "text-embedding-3-small",
@@ -138,7 +138,66 @@ Returns all available models from configured providers, including dynamically de
 }
 ```
 
-**Note:** The embeddings endpoint currently returns stub responses. To enable full embeddings support, configure an OpenAI API key and implement the embedding provider integration.
+**Note:** The embeddings API endpoint returns stub responses for compatibility with OpenAI SDKs. However, **semantic caching is fully functional** using local embeddings (Xenova/all-MiniLM-L6-v2) without requiring any API keys. The internal embedding system powers the semantic cache but is not exposed through this API endpoint yet.
+
+## Caching
+
+NodeHub automatically caches responses to reduce API costs and improve response times.
+
+### Two-Layer Caching System
+
+1. **Exact Match** - SHA-256 hash lookup (~5ms)
+   - Identical queries return cached responses instantly
+2. **Semantic Match** - Cosine similarity search (~50ms)
+   - Similar queries (similarity >= 0.95) return cached responses
+   - Uses local embeddings via @xenova/transformers (Xenova/all-MiniLM-L6-v2)
+   - **No API key required** for semantic caching
+
+### Cache Response Fields
+
+All chat completion responses include a `nodehub` object with caching information:
+
+**Cache Miss (new request):**
+```json
+{
+  "nodehub": {
+    "cache_hit": false
+  }
+}
+```
+
+**Exact Match (identical query):**
+```json
+{
+  "nodehub": {
+    "cache_hit": true,
+    "cache_type": "exact",
+    "similarity": 1.0
+  }
+}
+```
+
+**Semantic Match (similar query):**
+```json
+{
+  "nodehub": {
+    "cache_hit": true,
+    "cache_type": "semantic",
+    "similarity": 0.97
+  }
+}
+```
+
+### Cache Statistics
+
+When a cache hit occurs:
+- `usage` fields show 0 tokens (no API call made)
+- Response time is significantly faster (~5-50ms vs 500-2000ms)
+- Cost is $0 (no provider API call)
+
+### TTL
+
+Cache entries expire after 24 hours by default.
 
 ## SDK Compatibility
 
@@ -198,8 +257,9 @@ NodeHub returns appropriate HTTP status codes and detailed error messages:
 
 | Status Code | Error Type | Description |
 |-------------|------------|-------------|
-| **400** | `invalid_request_error` | Bad request (invalid model, missing parameters) |
+| **400** | `invalid_request_error` | Bad request (invalid model, missing parameters, provider not configured) |
 | **401** | `authentication_error` | Invalid or missing API key |
+| **404** | `not_found_error` | Resource not found (e.g., user session invalid) |
 | **429** | `rate_limit_error` | Rate limited by upstream provider |
 | **500** | `api_error` | Internal server error or upstream provider error |
 
@@ -255,6 +315,18 @@ NodeHub returns appropriate HTTP status codes and detailed error messages:
   }
 }
 ```
+
+**User Not Found (404):**
+```json
+{
+  "error": {
+    "message": "User not found. Please sign out and sign back in.",
+    "type": "not_found_error"
+  }
+}
+```
+
+**Note:** This error occurs when your session references a user that no longer exists in the database (e.g., after database reset). Sign out and sign back in to recreate your user session.
 
 ### Error Message Details
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db, modelProviderConfigs } from "@nodehub/db";
+import { db, modelProviderConfigs, users } from "@nodehub/db";
 import { eq, and } from "drizzle-orm";
 import { PROVIDER_MODELS } from "@nodehub/core/providers";
 
@@ -44,6 +44,17 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json(
       { error: "Provider ID required" },
       { status: 400 }
+    );
+  }
+
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, session.user.id),
+  });
+
+  if (!user) {
+    return NextResponse.json(
+      { error: "User not found. Please sign out and sign back in." },
+      { status: 404 }
     );
   }
 
