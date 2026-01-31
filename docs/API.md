@@ -109,6 +109,8 @@ Returns all available models from configured providers, including dynamically de
 
 **Endpoint:** `POST /api/v1/embeddings`
 
+**Status:** ⚠️ Stub Implementation - Returns placeholder responses. Full implementation requires OpenAI API key for embedding generation.
+
 **Request Body:**
 ```json
 {
@@ -116,6 +118,27 @@ Returns all available models from configured providers, including dynamically de
   "input": "The quick brown fox"
 }
 ```
+
+**Response:**
+```json
+{
+  "object": "list",
+  "data": [
+    {
+      "object": "embedding",
+      "index": 0,
+      "embedding": []  // Currently empty - full implementation pending
+    }
+  ],
+  "model": "text-embedding-3-small",
+  "usage": {
+    "prompt_tokens": 4,
+    "total_tokens": 4
+  }
+}
+```
+
+**Note:** The embeddings endpoint currently returns stub responses. To enable full embeddings support, configure an OpenAI API key and implement the embedding provider integration.
 
 ## SDK Compatibility
 
