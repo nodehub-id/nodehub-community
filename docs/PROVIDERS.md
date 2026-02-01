@@ -4,13 +4,13 @@ NodeHub Community Edition supports 5 AI providers.
 
 ## Supported Providers
 
-| Provider | Models | Cost |
-|----------|--------|------|
-| **OpenAI** | GPT-4o, GPT-4o-mini, GPT-4, GPT-3.5-turbo | $ per token |
-| **Anthropic** | Claude 3.5 Sonnet, Claude 3 Opus, Claude 3 Haiku | $ per token |
-| **Google** | Gemini 1.5 Pro, Gemini 1.5 Flash | $ per token |
-| **Groq** | Llama 3.2 70B, Mixtral 8x7b | $ per token |
-| **Ollama** | Any local model | Free (self-hosted) |
+| Provider | Models | Vision | Cost |
+|----------|--------|--------|------|
+| **OpenAI** | GPT-4o, GPT-4o-mini, GPT-4, GPT-3.5-turbo | ✅ GPT-4o, GPT-4o-mini | $ per token |
+| **Anthropic** | Claude 3.5 Sonnet, Claude 3 Opus, Claude 3 Haiku | ✅ All Claude 3 models | $ per token |
+| **Google** | Gemini 1.5 Pro, Gemini 1.5 Flash | ✅ All Gemini models | $ per token |
+| **Groq** | Llama 3.2 70B, Mixtral 8x7b | ❌ | $ per token |
+| **Ollama** | Any local model | Depends on model | Free (self-hosted) |
 
 ## Configuration
 
@@ -95,17 +95,17 @@ NodeHub will automatically route to the correct provider based on the model name
 
 **Available Models:**
 
-| Model | Provider | Use Case |
-|-------|----------|----------|
-| `gpt-4o` | OpenAI | Best overall performance |
-| `gpt-4o-mini` | OpenAI | Fast, cost-effective |
-| `claude-3-5-sonnet-latest` | Anthropic | Excellent for complex tasks |
-| `claude-3-opus-latest` | Anthropic | Most capable (expensive) |
-| `gemini-1.5-pro` | Google | Good for long context |
-| `gemini-1.5-flash` | Google | Fast responses |
-| `llama-3.2-70b` | Groq | Fast inference |
-| `mixtral-8x7b` | Groq | Balanced performance |
-| Any local model | Ollama | Free, private |
+| Model | Provider | Vision | Use Case |
+|-------|----------|--------|----------|
+| `gpt-4o` | OpenAI | ✅ | Best overall performance |
+| `gpt-4o-mini` | OpenAI | ✅ | Fast, cost-effective |
+| `claude-3-5-sonnet-latest` | Anthropic | ✅ | Excellent for complex tasks |
+| `claude-3-opus-latest` | Anthropic | ✅ | Most capable (expensive) |
+| `gemini-1.5-pro` | Google | ✅ | Good for long context |
+| `gemini-1.5-flash` | Google | ✅ | Fast responses |
+| `llama-3.2-70b` | Groq | ❌ | Fast inference |
+| `mixtral-8x7b` | Groq | ❌ | Balanced performance |
+| Any local model | Ollama | Varies | Free, private |
 
 ### Ollama Model Support
 

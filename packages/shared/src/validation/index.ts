@@ -1,11 +1,30 @@
 import { z } from 'zod';
 
+// Vision content part schemas
+const textContentPartSchema = z.object({
+  type: z.literal('text'),
+  text: z.string(),
+});
+
+const imageContentPartSchema = z.object({
+  type: z.literal('image_url'),
+  image_url: z.object({
+    url: z.string(),
+    detail: z.enum(['auto', 'low', 'high']).optional(),
+  }),
+});
+
+const contentPartSchema = z.union([textContentPartSchema, imageContentPartSchema]);
+
+// Message can have string content or array of content parts (for vision)
+const messageSchema = z.object({
+  role: z.enum(['system', 'user', 'assistant']),
+  content: z.union([z.string(), z.array(contentPartSchema)]),
+});
+
 export const chatCompletionSchema = z.object({
   model: z.string(),
-  messages: z.array(z.object({
-    role: z.enum(['system', 'user', 'assistant']),
-    content: z.string(),
-  })),
+  messages: z.array(messageSchema),
   temperature: z.number().optional(),
   max_tokens: z.number().optional(),
   stream: z.boolean().optional(),

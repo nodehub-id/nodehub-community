@@ -39,9 +39,25 @@ export interface CacheEntry {
   createdAt: Date;
 }
 
+// Vision content types for multimodal messages
+export interface TextContentPart {
+  type: 'text';
+  text: string;
+}
+
+export interface ImageContentPart {
+  type: 'image_url';
+  image_url: {
+    url: string;  // base64 data URI or URL
+    detail?: 'auto' | 'low' | 'high';
+  };
+}
+
+export type ContentPart = TextContentPart | ImageContentPart;
+
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
-  content: string;
+  content: string | ContentPart[];  // String or array for vision
 }
 
 export interface ChatCompletionRequest {

@@ -1,4 +1,57 @@
-import { BaseProvider, ChatCompletionRequest, ChatCompletionResponse, ProviderConfig } from './base';
+import { BaseProvider, ChatCompletionRequest, ChatCompletionResponse, ProviderConfig, ContentPart } from './base';
+
+// Anthropic content types
+type AnthropicTextBlock = { type: 'text'; text: string };
+type AnthropicImageBlock = { type: 'image'; source: { type: 'base64'; media_type: string; data: string } | { type: 'url'; url: string } };
+type AnthropicContentBlock = AnthropicTextBlock | AnthropicImageBlock;
+
+/**
+ * Convert OpenAI content format to Anthropic content format
+ * OpenAI: { type: 'image_url', image_url: { url: 'data:image/png;base64,...' } }
+ * Anthropic: { type: 'image', source: { type: 'base64', media_type: 'image/png', data: '...' } }
+ */
+function convertContentForAnthropic(content: string | ContentPart[]): string | AnthropicContentBlock[] {
+  if (typeof content === 'string') {
+    return content;
+  }
+
+  return content.map(part => {
+    if (part.type === 'text') {
+      return { type: 'text' as const, text: part.text };
+    }
+    // Convert image_url to Anthropic's format
+    const url = part.image_url.url;
+    if (url.startsWith('data:')) {
+      // Parse base64 data URI: data:image/png;base64,iVBORw0KGgo...
+      const matches = url.match(/^data:([^;]+);base64,(.+)$/);
+      if (matches) {
+        const [, mediaType, data] = matches;
+        return {
+          type: 'image' as const,
+          source: { type: 'base64' as const, media_type: mediaType, data }
+        };
+      }
+    }
+    // For HTTP URLs, Anthropic supports URL source type
+    return {
+      type: 'image' as const,
+      source: { type: 'url' as const, url }
+    };
+  });
+}
+
+/**
+ * Extract text content from a message for system prompt
+ */
+function extractTextContent(content: string | ContentPart[]): string {
+  if (typeof content === 'string') {
+    return content;
+  }
+  return content
+    .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
+    .map(part => part.text)
+    .join('\n');
+}
 
 export class AnthropicProvider extends BaseProvider {
   async *chatCompletions(request: ChatCompletionRequest): AsyncGenerator<ChatCompletionResponse> {
@@ -17,9 +70,9 @@ export class AnthropicProvider extends BaseProvider {
         model: request.model,
         messages: messages.map(m => ({
           role: m.role === 'user' ? 'user' : 'assistant',
-          content: m.content,
+          content: convertContentForAnthropic(m.content),
         })),
-        system: systemMessage?.content,
+        system: systemMessage ? extractTextContent(systemMessage.content) : undefined,
         temperature: request.temperature,
         max_tokens: request.max_tokens || 4096,
         stream: request.stream,

@@ -1,4 +1,39 @@
-import { BaseProvider, ChatCompletionRequest, ChatCompletionResponse, ProviderConfig } from './base';
+import { BaseProvider, ChatCompletionRequest, ChatCompletionResponse, ProviderConfig, ContentPart } from './base';
+
+// Gemini content types
+type GeminiTextPart = { text: string };
+type GeminiInlineDataPart = { inline_data: { mime_type: string; data: string } };
+type GeminiFileDataPart = { file_data: { file_uri: string } };
+type GeminiPart = GeminiTextPart | GeminiInlineDataPart | GeminiFileDataPart;
+
+/**
+ * Convert OpenAI content format to Gemini content format
+ * OpenAI: { type: 'image_url', image_url: { url: 'data:image/png;base64,...' } }
+ * Gemini: { inline_data: { mime_type: 'image/png', data: '...' } }
+ */
+function convertContentForGemini(content: string | ContentPart[]): GeminiPart[] {
+  if (typeof content === 'string') {
+    return [{ text: content }];
+  }
+
+  return content.map(part => {
+    if (part.type === 'text') {
+      return { text: part.text };
+    }
+    // Convert image_url to Gemini's format
+    const url = part.image_url.url;
+    if (url.startsWith('data:')) {
+      // Parse base64 data URI: data:image/png;base64,iVBORw0KGgo...
+      const matches = url.match(/^data:([^;]+);base64,(.+)$/);
+      if (matches) {
+        const [, mimeType, data] = matches;
+        return { inline_data: { mime_type: mimeType, data } };
+      }
+    }
+    // For HTTP URLs, use file_data format
+    return { file_data: { file_uri: url } };
+  });
+}
 
 export class GoogleProvider extends BaseProvider {
   async *chatCompletions(request: ChatCompletionRequest): AsyncGenerator<ChatCompletionResponse> {
@@ -12,7 +47,7 @@ export class GoogleProvider extends BaseProvider {
         body: JSON.stringify({
           contents: request.messages.map(m => ({
             role: m.role === 'user' ? 'user' : 'model',
-            parts: [{ text: m.content }],
+            parts: convertContentForGemini(m.content),
           })),
           generationConfig: {
             temperature: request.temperature,
@@ -39,7 +74,7 @@ export class GoogleProvider extends BaseProvider {
         totalTokenCount?: number;
       };
     };
-    
+
     yield {
       id: data.name || `gemini-${Date.now()}`,
       object: 'chat.completion',

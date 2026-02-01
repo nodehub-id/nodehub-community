@@ -58,6 +58,72 @@ curl http://localhost:3000/api/v1/chat/completions \
 }
 ```
 
+### Vision Support (Images)
+
+NodeHub supports images in chat messages for vision-capable models. Use the multimodal content format:
+
+**Request with Image (base64):**
+```json
+{
+  "model": "gpt-4o",
+  "messages": [{
+    "role": "user",
+    "content": [
+      {"type": "text", "text": "What is in this image?"},
+      {"type": "image_url", "image_url": {"url": "data:image/png;base64,iVBORw0KGgo..."}}
+    ]
+  }]
+}
+```
+
+**Request with Image (URL):**
+```json
+{
+  "model": "claude-3-5-sonnet-latest",
+  "messages": [{
+    "role": "user",
+    "content": [
+      {"type": "text", "text": "Describe this image"},
+      {"type": "image_url", "image_url": {"url": "https://example.com/image.png"}}
+    ]
+  }]
+}
+```
+
+**Image Content Format:**
+```typescript
+// Message content can be string or array of content parts
+content: string | ContentPart[]
+
+// Content part types
+interface TextContentPart {
+  type: 'text';
+  text: string;
+}
+
+interface ImageContentPart {
+  type: 'image_url';
+  image_url: {
+    url: string;              // base64 data URI or HTTP URL
+    detail?: 'auto' | 'low' | 'high';  // optional quality hint
+  };
+}
+```
+
+**Vision-Capable Models:**
+
+| Provider | Models |
+|----------|--------|
+| OpenAI | `gpt-4o`, `gpt-4o-mini` |
+| Anthropic | `claude-3-5-sonnet-latest`, `claude-3-opus-latest`, `claude-3-haiku-latest` |
+| Google | `gemini-1.5-pro`, `gemini-1.5-flash` |
+
+**Supported Image Formats:**
+- Base64 data URI: `data:image/png;base64,...` or `data:image/jpeg;base64,...`
+- HTTP URLs: `https://example.com/image.png`
+
+**Caching:** Vision requests are cached by including the full image content in the query hash.
+
 ### Streaming
 
 Set `stream: true` for SSE streaming:

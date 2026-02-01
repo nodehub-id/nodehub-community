@@ -249,11 +249,22 @@ interface BaseProvider {
 ```
 
 **Adapters:**
-- OpenAI: Direct API compatibility
-- Anthropic: Message format conversion
-- Google: Gemini API
-- Groq: OpenAI-compatible endpoint
-- Ollama: Local HTTP API
+- OpenAI: Direct API compatibility (vision content passed through natively)
+- Anthropic: Message format conversion (converts `image_url` → `base64` source format)
+- Google: Gemini API (converts `image_url` → `inline_data` format)
+- Groq: OpenAI-compatible endpoint (no vision support)
+- Ollama: Local HTTP API (vision support depends on model)
+
+**Vision Support:**
+NodeHub accepts the OpenAI vision format and converts it for each provider:
+
+| Provider | Input Format | Converted To |
+|----------|-------------|--------------|
+| OpenAI | `image_url.url` | Passed through as-is |
+| Anthropic | `image_url.url` | `{ type: 'image', source: { type: 'base64', ... } }` |
+| Google | `image_url.url` | `{ inline_data: { mime_type, data } }` |
+
+Supported image formats: base64 data URIs (`data:image/png;base64,...`) and HTTP URLs.
 
 **Error Handling:**
 - Providers extract actual error messages from upstream APIs (not just status text)

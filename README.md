@@ -34,6 +34,7 @@ docker compose up -d
 
 ### Core Features
 - **OpenAI-compatible API** - Drop-in replacement for any tool (Cursor, Continue.dev, Cline, etc.)
+- **Vision Support** - Images in chat (GPT-4o, Claude, Gemini)
 - **Semantic Caching** - 40-50% cost savings using pgvector similarity matching
 - **Web Dashboard** - Complete UI for configuration and monitoring
 - **5 AI Providers** - OpenAI, Anthropic, Google, Groq, Ollama (local)
@@ -104,11 +105,11 @@ nodehub-community/
 
 | Feature | Community | Full Pro | Full Team |
 |---------|-----------|----------|-----------|
-| **Price** | Free | $29/mo | $99+/mo |
-| **License** | AGPL v3 | Proprietary | Proprietary |
+| **Price** | Free | $49/mo + usage | $149/mo + $25/user + usage |
+| **Deployment** | Self-hosted | SaaS (nodehub.id) | SaaS (nodehub.id) |
 | **API Keys** | 1 | 10 | Unlimited |
-| **Providers** | 5 | 10+ | 10+ |
-| **Caching** | Basic (0.95 fixed) | Advanced | Advanced |
+| **Providers** | 5 | 20+ | 20+ |
+| **Caching** | Basic (0.95 fixed) | Advanced (55-70%) | Advanced (55-70%) |
 | **Smart Routing** | ❌ | ✅ | ✅ |
 | **Analytics** | 7 days | 90 days | 365 days |
 | **Support** | Community | Email | Dedicated |
