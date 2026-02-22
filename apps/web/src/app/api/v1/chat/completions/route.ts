@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     const validated = parsed.data;
 
     // 3. Check cache
-    const cache = new SemanticCache({ similarityThreshold: 0.95, ttlHours: 24 });
+    const cache = new SemanticCache({ similarityThreshold: 0.90, ttlHours: 24 });
     const query = JSON.stringify(validated.messages);
     const cached = await cache.get(keyData.userId, query, validated.model);
 

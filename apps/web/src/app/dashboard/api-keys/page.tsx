@@ -173,13 +173,13 @@ export default function ApiKeysPage() {
       <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          Community Edition allows only 1 API key. Upgrade to Full Edition for unlimited keys.
+          Community Edition allows up to 3 API keys. Upgrade to Full Edition for unlimited keys.
         </AlertDescription>
       </Alert>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
-          <Button disabled={keys.length >= 1}>
+          <Button disabled={keys.length >= 3}>
             <Key className="mr-2 h-4 w-4" />
             Create New API Key
           </Button>

@@ -34,10 +34,10 @@ The main dashboard showing your API usage at a glance.
 
 Manage your API keys for accessing NodeHub.
 
-**Community Edition Limit:** 1 API key maximum
+**Community Edition Limit:** 3 API keys maximum
 
 **Features:**
-- Create new API keys (limited to 1)
+- Create new API keys (limited to 3)
 - View key details (name, prefix, status, creation date)
 - Copy or delete existing keys
 - See when keys were last used

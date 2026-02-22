@@ -44,7 +44,7 @@ docker compose up -d
 
 ### Dashboard Features
 - **Overview** - Stats, quick navigation, quick start guide
-- **API Keys** - Manage API keys (1 key limit in Community Edition)
+- **API Keys** - Manage API keys (3 key limit in Community Edition)
 - **Providers** - Configure all 5 AI providers with test connections
 - **Analytics** - Usage charts, cost tracking, cache performance
 - **Caching** - View cache status and configuration
@@ -59,7 +59,7 @@ docker compose up -d
 - **Exact Match** - SHA-256 hash-based fast lookup (~5ms)
 - **Semantic Match** - pgvector cosine similarity search (~50ms)
   - Uses local embeddings via @xenova/transformers (Xenova/all-MiniLM-L6-v2, 384 dimensions)
-  - Fixed similarity threshold: 0.95
+  - Fixed similarity threshold: 0.90
   - **No API key required** - works out of the box
   - Optional: Configure OpenAI, Ollama, or other embedding providers
 - **TTL** - 24-hour default cache expiration

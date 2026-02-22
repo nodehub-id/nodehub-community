@@ -3,8 +3,8 @@ import { auth } from "@/lib/auth";
 import { getUserApiKeys, countUserApiKeys, createApiKey, revokeApiKey } from "@nodehub/core/auth";
 import { createApiKeySchema } from "@nodehub/shared/validation";
 
-// Community Edition: Only 1 API key allowed
-const MAX_API_KEYS = 1;
+// Community Edition: 3 API keys allowed
+const MAX_API_KEYS = 3;
 
 export async function GET() {
   const session = await auth();
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   if (keyCount >= MAX_API_KEYS) {
     return NextResponse.json(
       { 
-        error: "Community Edition allows only 1 API key",
+        error: "Community Edition allows up to 3 API keys",
         message: "Upgrade to Full Edition for unlimited keys"
       },
       { status: 403 }

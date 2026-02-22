@@ -215,7 +215,7 @@ NodeHub automatically caches responses to reduce API costs and improve response 
 1. **Exact Match** - SHA-256 hash lookup (~5ms)
    - Identical queries return cached responses instantly
 2. **Semantic Match** - Cosine similarity search (~50ms)
-   - Similar queries (similarity >= 0.95) return cached responses
+    - Similar queries (similarity >= 0.90) return cached responses
    - Uses local embeddings via @xenova/transformers (Xenova/all-MiniLM-L6-v2)
    - **No API key required** for semantic caching
 

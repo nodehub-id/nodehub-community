@@ -207,7 +207,7 @@ nodehub-community/
    - Zero API cost on hit
 2. **Semantic Match**: pgvector cosine similarity
    - Local embeddings via @xenova/transformers (Xenova/all-MiniLM-L6-v2, 384 dimensions)
-   - Fixed similarity threshold: 0.95 (Community Edition)
+    - Fixed similarity threshold: 0.90 (Community Edition)
    - **No API key required** - works out of the box
    - Optional: Configure OpenAI, Ollama, HuggingFace TEI for different embedding models
    - ~50ms lookup time
@@ -218,7 +218,7 @@ Query → Exact Hash Match? → Yes → Return cached response
                           ↓ No
         Generate Embedding → pgvector similarity search
                           ↓
-        Similarity >= 0.95? → Yes → Return cached response
+         Similarity >= 0.90? → Yes → Return cached response
                             ↓ No
         Forward to provider → Cache response with embedding
 ```

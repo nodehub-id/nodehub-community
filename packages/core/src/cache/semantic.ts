@@ -6,7 +6,7 @@
  * 2. Semantic Match: pgvector cosine similarity search
  * 
  * Community Edition:
- * - Fixed similarity threshold: 0.95
+ * - Fixed similarity threshold: 0.90
  * - Default provider: local (@xenova/transformers)
  * - Falls back to exact match only if embeddings fail
  * 
@@ -23,7 +23,7 @@ import { eq, and, gt, sql } from 'drizzle-orm';
 import { getEmbeddingsService } from './embeddings';
 
 export interface CacheConfig {
-  /** Similarity threshold for semantic matching (0-1). Community: fixed at 0.95 */
+  /** Similarity threshold for semantic matching (0-1). Community: fixed at 0.90 */
   similarityThreshold: number;
   /** TTL in hours for cache entries. Default: 24 */
   ttlHours: number;
@@ -40,7 +40,7 @@ export interface CacheResult {
 export class SemanticCache {
   private config: CacheConfig;
 
-  constructor(config: CacheConfig = { similarityThreshold: 0.95, ttlHours: 24 }) {
+  constructor(config: CacheConfig = { similarityThreshold: 0.90, ttlHours: 24 }) {
     this.config = config;
   }
 
