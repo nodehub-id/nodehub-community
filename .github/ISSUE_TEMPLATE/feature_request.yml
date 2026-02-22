@@ -1,0 +1,76 @@
+name: Feature Request
+description: Suggest a feature or improvement for NodeHub Community Edition
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! We prioritize based on community interest, so well-described requests are more likely to get picked up.
+
+        **Note:** Some features (smart routing, prompt compression, configurable similarity threshold) are part of the Full Edition. If you're requesting those for the Community Edition, please explain your use case — we may consider adjusting the feature split.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or Use Case
+      description: What problem does this feature solve? What are you trying to accomplish?
+      placeholder: I'm using NodeHub with Cursor and I need to...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: How do you think this should work? Be as specific as you can.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Have you considered any workarounds or alternative approaches?
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of NodeHub does this relate to?
+      options:
+        - API (OpenAI-compatible endpoints)
+        - Caching (exact match / semantic)
+        - Dashboard (UI / UX)
+        - Provider Adapters (OpenAI, Anthropic, Google, Groq, Ollama)
+        - Authentication / API Keys
+        - Deployment / Docker
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: willingness
+    attributes:
+      label: Would you be willing to contribute this?
+      options:
+        - "Yes, I'd like to implement this"
+        - "I can help but would need guidance"
+        - "No, but I'd love to see it built"
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Add any mockups, examples, or references that help explain the feature.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I have searched existing issues and feature requests to avoid duplicates
+          required: true

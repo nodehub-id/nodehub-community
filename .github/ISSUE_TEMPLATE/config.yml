@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions & Discussion
+    url: https://github.com/nodehub-id/nodehub-community/discussions
+    about: Ask questions, share ideas, or discuss NodeHub with the community
+  - name: Full Edition (SaaS)
+    url: https://nodehub.id
+    about: For Full Edition features, pricing, and support
